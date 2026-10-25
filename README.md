@@ -1,73 +1,97 @@
 <div align="center">
-  <img src="fastlane/metadata/android/en-US/images/icon-fit.png" width="200px" />
 
-  # Lotus
+# Ren
 
-  ### Music player for Android
-  
+### An open-source, customizable local music player for Android.
+
+*A music player. Your space. Your style.*
+
 </div>
 
-## Screenshots
+---
 
-<div align="center">
-  <div>
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="24%" />
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="24%" />
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="24%" />
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width="24%" />
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" width="24%" />
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6.png" width="24%" />
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/7.png" width="24%" />
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/8.png" width="24%" />
-  </div>
-</div>
+## About
+
+**Ren** is an open-source Android music player focused on local music playback, personalization, and a clean, intuitive listening experience.
+
+Ren is developed from the open-source [Lotus](https://github.com/dn0ne/lotus) project, building upon its existing functionality while exploring new customization options, visual identity, and improvements.
+
+The goal is to create a music player that feels personal, stays out of the way, and lets you enjoy your music your way.
+
+> Ren is currently under development. Features, appearance, and functionality may change as the project evolves.
 
 ## Features
-- Enjoy your favorite music in a variety of formats, including MP3, FLAC, OGG, WAV, and more
-- Easily browse tracks, albums, artists, and genres, and create custom playlists
-- Enhance your listening experience with synchronized lyrics from [LRCLIB](https://lrclib.net/)
-- Manually update track details or fetch accurate info from [MusicBrainz](https://musicbrainz.org/)
-- Designed with [Material You](https://m3.material.io/) and supports dynamic color palettes
 
-## Download
-Latest stable version is available on [GitHub releases](https://github.com/dn0ne/lotus/releases/latest)
+Ren builds upon the functionality available in Lotus, including:
 
-Stable releases are also available on [F-Droid](https://f-droid.org/packages/com.dn0ne.lotus)
+- **Local music playback** — Listen to your music collection in formats such as MP3, FLAC, OGG, WAV, and more.
+- **Music library** — Browse tracks, albums, artists, and genres.
+- **Playlists** — Organize your music with custom playlists.
+- **Synchronized lyrics** — Retrieve lyrics through [LRCLIB](https://lrclib.net/).
+- **Music metadata** — Edit track information or retrieve metadata through [MusicBrainz](https://musicbrainz.org/).
+- **Dynamic theming** — Customize the appearance using Material You and dynamic color palettes.
 
-## Support
-If you enjoy using Lotus, consider [buying me a coffee](https://en.liberapay.com/dn0ne/donate)!
+Additional features and improvements are planned as development progresses.
 
-## Build
-1. **Get the Source Code**  
-   - Clone the repository or download the source code:
-     ```bash
-     git clone https://github.com/dn0ne/lotus.git
-     ```
+## Development Status
 
-2. **Open project in Android Studio**  
-   - Launch Android Studio.  
-   - Select **File > Open** and navigate to the project's folder.  
-   - Click **OK** to open the project.
+Ren is actively being developed.
 
-3. **Run the project**  
-   - Wait for the project to sync and build (Gradle sync may take some time).  
-   - Ensure a device or emulator is connected.  
-   - Click the **Run** button or press `Shift + F10` to build and launch the app.  
+The current priority is to establish Ren's own visual identity, improve personalization, and gradually introduce new features while preserving the simplicity of the original project.
 
-That's it! The app should now be running. 
+## Building from Source
 
-## Credits
-Some UI elements are inspired by [Vanilla](https://github.com/vanilla-music/vanilla)
+### Requirements
 
-Lyrics UI is inspired by [Beautiful Lyrics](https://github.com/surfbryce/beautiful-lyrics)
+- Android Studio
+- A compatible JDK and Android SDK
+- Git
 
-[MaterialKolor](https://github.com/jordond/materialkolor)
+### Instructions
 
-[kmpalette](https://github.com/jordond/kmpalette)
+1. Clone the repository:
 
-[Reorderable](https://github.com/Calvin-LL/Reorderable)
+   ```bash
+   git clone https://github.com/TU_USUARIO/ren-music-player.git
+   ```
 
-[jaudiotagger](https://bitbucket.org/ijabz/jaudiotagger/src/master/)
+2. Open the cloned project in Android Studio.
+
+3. Allow Gradle to synchronize the project and download the required dependencies.
+
+4. Connect an Android device or start an emulator.
+
+5. Build and run the application from Android Studio.
+
+Build requirements may change as development progresses. Refer to the project configuration if additional setup is required.
+
+## Contributing
+
+Contributions, suggestions, and bug reports are welcome.
+
+Before submitting substantial changes, consider opening an issue to discuss the proposed improvement.
+
+Please ensure that contributions respect the project's license and the licenses of its dependencies.
+
+## Credits and Acknowledgments
+
+Ren is derived from [Lotus](https://github.com/dn0ne/lotus), originally developed by [dn0ne](https://github.com/dn0ne).
+
+Ren builds upon the original project's work and acknowledges the following projects and libraries used by Lotus:
+
+- [Vanilla Music](https://github.com/vanilla-music/vanilla) — Inspiration for some UI elements.
+- [Beautiful Lyrics](https://github.com/surfbryce/beautiful-lyrics) — Inspiration for the lyrics interface.
+- [MaterialKolor](https://github.com/jordond/materialkolor)
+- [kmpalette](https://github.com/jordond/kmpalette)
+- [Reorderable](https://github.com/Calvin-LL/Reorderable)
+- [jaudiotagger](https://bitbucket.org/ijabz/jaudiotagger/src/master/)
+
+We are grateful to the original developers and open-source community for their work.
 
 ## License
-Lotus is licensed under [GPLv3](LICENSE.md)
+
+Ren is distributed under the GNU General Public License v3.0 (GPL-3.0), subject to the applicable license terms of the original project.
+
+See [LICENSE.md](LICENSE.md) for the full license text.
+
+Ren incorporates work from the original Lotus project and other third-party components. Their respective copyright notices and license requirements must be respected.
