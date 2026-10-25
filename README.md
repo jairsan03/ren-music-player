@@ -52,7 +52,7 @@ The current priority is to establish Ren's own visual identity, improve personal
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/TU_USUARIO/ren-music-player.git
+   git clone https://github.com/jssanchez03/ren-music-player.git
    ```
 
 2. Open the cloned project in Android Studio.
