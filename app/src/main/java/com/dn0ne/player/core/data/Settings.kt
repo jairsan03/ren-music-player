@@ -343,6 +343,7 @@ class Settings(context: Context) {
     private val useDynamicColorKey = "use-dynamic-color"
     private val useAlbumArtColorKey = "use-album-art-color"
     private val paletteStyleKey = "palette-style"
+    private val paletteStyleOrderMigratedKey = "palette-style-ren-order-migrated"
     private val amoledDarkThemeKey = "amoled-dark-theme"
     private val showMiniPlayerPreviousButtonKey = "show-mini-player-previous-button"
     private val showAnimatedPlaybackIndicatorKey = "show-animated-playback-indicator"
@@ -439,10 +440,34 @@ class Settings(context: Context) {
     }
 
     private val _paletteStyle = MutableStateFlow(
-        Theme.PaletteStyle.entries[
-            sharedPreferences.getInt(paletteStyleKey, Theme.PaletteStyle.Ren.ordinal)
-                .coerceIn(0, Theme.PaletteStyle.entries.lastIndex)
-        ]
+        run {
+            val savedValue = sharedPreferences.getInt(paletteStyleKey, -1)
+            val alreadyMigrated = sharedPreferences.getBoolean(paletteStyleOrderMigratedKey, false)
+            val style = if (alreadyMigrated) {
+                Theme.PaletteStyle.entries.getOrNull(savedValue) ?: Theme.PaletteStyle.Ren
+            } else {
+                val legacyOrderStyle = when (savedValue) {
+                    0 -> Theme.PaletteStyle.TonalSpot
+                    1 -> Theme.PaletteStyle.Neutral
+                    2 -> Theme.PaletteStyle.Vibrant
+                    3 -> Theme.PaletteStyle.Expressive
+                    4 -> Theme.PaletteStyle.Rainbow
+                    5 -> Theme.PaletteStyle.FruitSalad
+                    6 -> Theme.PaletteStyle.Monochrome
+                    7 -> Theme.PaletteStyle.Fidelity
+                    8 -> Theme.PaletteStyle.Content
+                    9 -> Theme.PaletteStyle.Ren
+                    else -> Theme.PaletteStyle.Ren
+                }
+                with(sharedPreferences.edit()) {
+                    putInt(paletteStyleKey, legacyOrderStyle.ordinal)
+                    putBoolean(paletteStyleOrderMigratedKey, true)
+                    apply()
+                }
+                legacyOrderStyle
+            }
+            style
+        }
     )
     val paletteStyle = _paletteStyle.asStateFlow()
     fun updatePaletteStyle(paletteStyle: Theme.PaletteStyle) {

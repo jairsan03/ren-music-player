@@ -48,7 +48,7 @@ fun AppDetails(
             Image(
                 bitmap = ImageBitmap.imageResource(logo),
                 contentDescription = context.getString(R.string.app_name),
-                modifier = Modifier.size(width = 260.dp, height = 156.dp),
+                modifier = Modifier.size(200.dp),
                 contentScale = ContentScale.Fit,
                 filterQuality = FilterQuality.High
             )
@@ -70,7 +70,7 @@ fun AppDetails(
             Image(
                 bitmap = ImageBitmap.imageResource(logo),
                 contentDescription = context.getString(R.string.app_name),
-                modifier = Modifier.size(width = 220.dp, height = 132.dp),
+                modifier = Modifier.size(width = 250.dp, height = 150.dp),
                 contentScale = ContentScale.Fit,
                 filterQuality = FilterQuality.High
             )

@@ -207,6 +207,13 @@ fun ThemeSettings(
         val paletteOptions = remember {
             listOf(
                 PaletteOption(
+                    title = context.resources.getString(R.string.palette_ren),
+                    onSelection = {
+                        settings.updatePaletteStyle(PaletteStyle.Ren)
+                    },
+                    style = PaletteStyle.Ren
+                ),
+                PaletteOption(
                     title = context.resources.getString(R.string.palette_tonal_spot),
                     onSelection = {
                         settings.updatePaletteStyle(PaletteStyle.TonalSpot)
@@ -268,13 +275,6 @@ fun ThemeSettings(
                         settings.updatePaletteStyle(PaletteStyle.Content)
                     },
                     style = PaletteStyle.Content
-                ),
-                PaletteOption(
-                    title = context.resources.getString(R.string.palette_ren),
-                    onSelection = {
-                        settings.updatePaletteStyle(PaletteStyle.Ren)
-                    },
-                    style = PaletteStyle.Ren
                 )
             )
         }
@@ -333,19 +333,14 @@ fun ThemeSettings(
                         },
                         animate = true
                     ) {
-                        val isPreviewDark = when (selectedAppearance) {
-                            Appearance.System -> isDarkTheme
-                            Appearance.Light -> false
-                            Appearance.Dark -> true
-                        }
                         val previewColors = if (option.style == PaletteStyle.Ren) {
                             listOf(
                                 renPrimary,
                                 renSecondary,
                                 renTertiary,
-                                if (isPreviewDark) renDarkBackground else renLightBackground,
-                                MaterialTheme.colorScheme.primaryContainer,
-                                MaterialTheme.colorScheme.secondaryContainer
+                                renDarkBackground,
+                                renLightBackground,
+                                Color(0xFFD9D1D1)
                             )
                         } else {
                             listOf(
@@ -451,6 +446,7 @@ object Theme {
     }
 
     enum class PaletteStyle {
+        Ren,
         TonalSpot,
         Neutral,
         Vibrant,
@@ -459,7 +455,6 @@ object Theme {
         FruitSalad,
         Monochrome,
         Fidelity,
-        Content,
-        Ren
+        Content
     }
 }

@@ -71,6 +71,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -112,6 +114,7 @@ import com.dn0ne.player.core.data.PlaybackIndicatorStyle
 import com.dn0ne.player.ui.theme.Typography
 import com.dn0ne.player.ui.theme.renDarkColorScheme
 import com.dn0ne.player.ui.theme.renLightColorScheme
+import com.dn0ne.player.ui.theme.renPrimary
 import com.kmpalette.color
 import com.kmpalette.rememberDominantColorState
 import com.materialkolor.DynamicMaterialTheme
@@ -196,7 +199,19 @@ fun PlayerScreen(
         animate = true
     ) {
         val activeColorScheme = if (paletteStyle == Theme.PaletteStyle.Ren) {
-            if (isDarkAppearance) renDarkColorScheme else renLightColorScheme
+            val renScheme = if (isDarkAppearance) renDarkColorScheme else renLightColorScheme
+            if (useAlbumArtColor && coverArtBitmap != null) {
+                renScheme.copy(
+                    primary = colorToApply,
+                    onPrimary = if (colorToApply.luminance() > 0.5f) {
+                        Color(0xFF27212A)
+                    } else {
+                        Color(0xFFF5F0E8)
+                    }
+                )
+            } else {
+                renScheme.copy(primary = renPrimary)
+            }
         } else MaterialTheme.colorScheme
         MaterialTheme(colorScheme = activeColorScheme, typography = Typography) {
         val rippleColor = MaterialTheme.colorScheme.primaryContainer

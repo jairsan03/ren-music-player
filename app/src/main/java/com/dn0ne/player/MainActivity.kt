@@ -273,8 +273,11 @@ class MainActivity : ComponentActivity() {
                             }
 
                             val useDynamicColor by viewModel.settings.useDynamicColor.collectAsState()
+                            val paletteStyle by viewModel.settings.paletteStyle.collectAsState()
                             MusicPlayerTheme(
-                                dynamicColor = useDynamicColor
+                                darkTheme = isDarkTheme,
+                                dynamicColor = useDynamicColor,
+                                useRenPalette = paletteStyle == Theme.PaletteStyle.Ren
                             ) {
                                 PlayerScreen(
                                     viewModel = viewModel,
