@@ -7,7 +7,7 @@
     <string name="get_started">Начать</string>
     <string name="permissions">Дозволи</string>
     <string name="audio">Аудіо</string>
-    <string name="explain_audio_permission_requirement">Lotus потребує його, щоб відтворювати вашу чудову музику</string>
+    <string name="explain_audio_permission_requirement">Ren потребує його, щоб відтворювати вашу чудову музику</string>
     <string name="grant_permission">Надати дозвіл</string>
     <string name="next">Далі</string>
     <string name="grant_permission_in_settings">Будь ласка, надайте дозвіл у налаштуваннях</string>
@@ -319,8 +319,6 @@
     <string name="ignore_short_tracks_explain">Не показувати треки коротше 30 секунд</string>
 
     <!-- About screen -->
-    <string name="repo">Репозиторій</string>
-    <string name="repo_explain">Ознайомтеся з репозиторієм проекту</string>
     <string name="feedback">Зворотній зв\'язок</string>
     <string name="feedback_explain">Зв\'яжіться з нами, щоб запропонувати функцію або повідомити про проблему</string>
 

@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.dn0ne.player.app.domain.track.Track
+import com.dn0ne.player.core.data.PlaybackIndicatorStyle
 
 fun LazyListScope.trackList(
     trackList: List<Track>,
@@ -22,7 +23,13 @@ fun LazyListScope.trackList(
     onViewTrackInfoClick: (Track) -> Unit,
     onGoToAlbumClick: (Track) -> Unit,
     onGoToArtistClick: (Track) -> Unit,
-    onLongClick: (Track) -> Unit = {}
+    onLongClick: (Track) -> Unit = {},
+    isPlaying: Boolean = false,
+    showPlaybackIndicator: Boolean = true,
+    playbackIndicatorStyle: PlaybackIndicatorStyle = PlaybackIndicatorStyle.ClassicBars,
+    queuedTracks: List<Track> = emptyList(),
+    nextTrack: Track? = null,
+    onRemoveFromQueueClick: (Track) -> Unit = {}
 ) {
     if (trackList.isEmpty()) {
         item {
@@ -37,6 +44,12 @@ fun LazyListScope.trackList(
         TrackListItem(
             track = track,
             isCurrent = currentTrack == track,
+            isPlaying = isPlaying,
+            showPlaybackIndicator = showPlaybackIndicator,
+            playbackIndicatorStyle = playbackIndicatorStyle,
+            isInQueue = queuedTracks.any { it.uri == track.uri },
+            isNextInQueue = nextTrack?.uri == track.uri,
+            onRemoveFromQueueClick = { onRemoveFromQueueClick(track) },
             onClick = { onTrackClick(track) },
             onLongClick = { onLongClick(track) },
             onPlayNextClick = { onPlayNextClick(track) },
@@ -66,6 +79,12 @@ fun LazyGridScope.trackList(
     onGoToAlbumClick: (Track) -> Unit,
     onGoToArtistClick: (Track) -> Unit,
     onLongClick: (Track) -> Unit,
+    isPlaying: Boolean = false,
+    showPlaybackIndicator: Boolean = true,
+    playbackIndicatorStyle: PlaybackIndicatorStyle = PlaybackIndicatorStyle.ClassicBars,
+    queuedTracks: List<Track> = emptyList(),
+    nextTrack: Track? = null,
+    onRemoveFromQueueClick: (Track) -> Unit = {},
 ) {
     if (trackList.isEmpty()) {
         item {
@@ -80,6 +99,12 @@ fun LazyGridScope.trackList(
         TrackListItem(
             track = track,
             isCurrent = currentTrack == track,
+            isPlaying = isPlaying,
+            showPlaybackIndicator = showPlaybackIndicator,
+            playbackIndicatorStyle = playbackIndicatorStyle,
+            isInQueue = queuedTracks.any { it.uri == track.uri },
+            isNextInQueue = nextTrack?.uri == track.uri,
+            onRemoveFromQueueClick = { onRemoveFromQueueClick(track) },
             onClick = { onTrackClick(track) },
             onLongClick = { onLongClick(track) },
             onPlayNextClick = { onPlayNextClick(track) },

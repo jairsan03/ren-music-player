@@ -11,32 +11,37 @@ data class Lyrics(
 )
 
 fun String.toSyncedLyrics(): List<Pair<Int, String>> {
-    val regex = """\[(\d+):(\d+)\.(\d+)].*""".toRegex()
+    val regex = """^\[(\d+):(\d+)\.(\d+)](.*)$""".toRegex()
     return split('\n')
         .filter {
             it.matches(regex)
         }
         .ifEmpty { throw IllegalArgumentException("Synced lines not found.") }
         .map {
-            val timestampString = it.substring(1..8)
-            val timestamp = timestampString.toLyricsTimestamp()
+            val match = regex.matchEntire(it)
+                ?: throw IllegalArgumentException("Failed to parse synced lyric line.")
+            val minutes = match.groupValues[1].toLongOrNull()
+                ?: throw IllegalArgumentException("Failed to parse lyric minutes.")
+            val seconds = match.groupValues[2].toLongOrNull()
+                ?.takeIf { value -> value in 0..59 }
+                ?: throw IllegalArgumentException("Failed to parse lyric seconds.")
+            val fractionText = match.groupValues[3]
+            val fraction = fractionText.toLongOrNull()
+                ?: throw IllegalArgumentException("Failed to parse lyric timestamp fraction.")
+            val millis = when (fractionText.length) {
+                1 -> fraction * 100
+                2 -> fraction * 10
+                else -> fractionText.take(3).toLongOrNull()
+                    ?: throw IllegalArgumentException("Failed to parse lyric timestamp fraction.")
+            }
+            if (minutes > (Int.MAX_VALUE.toLong() - 59_999) / 60_000) {
+                throw IllegalArgumentException("Lyric timestamp is out of range.")
+            }
+            val timestamp = (minutes * 60_000 + seconds * 1_000 + millis)
+                .takeIf { value -> value <= Int.MAX_VALUE }
+                ?.toInt()
+                ?: throw IllegalArgumentException("Lyric timestamp is out of range.")
 
-            timestamp to it.drop(10).trim()
+            timestamp to match.groupValues[4].trim()
         }
-}
-
-fun String.toLyricsTimestamp(): Int {
-    val regex = Regex("""(\d+):(\d+)\.(\d+)""")
-    regex.matchEntire(this)?.let { matchResult ->
-        val minutes = matchResult.groupValues.getOrNull(1)?.toIntOrNull()
-        val seconds = matchResult.groupValues.getOrNull(2)?.toIntOrNull()
-        val centiseconds = matchResult.groupValues.getOrNull(3)?.toIntOrNull()
-
-        if (minutes == null || seconds == null || centiseconds == null) {
-            throw IllegalArgumentException("Failed to parse timestamp: $this")
-        }
-
-        return minutes * 60 * 1000 + seconds * 1000 + centiseconds * 10
-    }
-        ?: throw IllegalArgumentException("Failed to parse timestamp, does not match regex ${regex.pattern}")
 }

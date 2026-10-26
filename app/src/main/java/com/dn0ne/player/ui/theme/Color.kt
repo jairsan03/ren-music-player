@@ -73,3 +73,10 @@ val surfaceContainerLowDark = Color(0xFF1A1C16)
 val surfaceContainerDark = Color(0xFF1E201A)
 val surfaceContainerHighDark = Color(0xFF282B24)
 val surfaceContainerHighestDark = Color(0xFF33362E)
+
+// Official Ren palette
+val renPrimary = Color(0xFFC98F9A)
+val renSecondary = Color(0xFFA7A0B8)
+val renTertiary = Color(0xFFC78370)
+val renLightBackground = Color(0xFFF5F0E8)
+val renDarkBackground = Color(0xFF27212A)

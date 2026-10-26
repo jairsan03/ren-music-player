@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,6 +49,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.dn0ne.player.app.presentation.components.animatable.rememberAnimatable
+import com.dn0ne.player.core.data.SeekBarStyle
 import kotlin.math.PI
 import kotlin.math.cos
 
@@ -58,21 +60,23 @@ fun WavingSeekBar(
     isPlaying: Boolean,
     onPositionChange: (Long) -> Unit,
     enableWaving: Boolean = true,
+    style: SeekBarStyle = SeekBarStyle.DEFAULT_WAVE,
     waveHeight: Dp = 6.dp,
     waveWidth: Dp = 6.dp,
     strokeWidth: Dp = 3.dp,
     handleSize: Dp = 20.dp,
     modifier: Modifier = Modifier
 ) {
-    val progressBarHeight by remember {
-        mutableStateOf(waveHeight)
-    }
+    val progressBarHeight = if (style == SeekBarStyle.MULTI_WAVE_SAMSUNG) 10.dp else waveHeight
     val handlePadding by remember {
         mutableStateOf(12.dp)
     }
     val handleSize by remember {
         mutableStateOf(handleSize)
     }
+    val effectiveHandleSize = if (style == SeekBarStyle.MULTI_WAVE_SAMSUNG) 22.dp else handleSize
+    val effectiveWaveWidth = if (style == SeekBarStyle.MULTI_WAVE_SAMSUNG) 32.dp else waveWidth
+    val effectiveStrokeWidth = if (style == SeekBarStyle.MULTI_WAVE_SAMSUNG) 4.dp else strokeWidth
 
     var handleOffsetFraction by remember {
         mutableFloatStateOf(0f)
@@ -160,44 +164,57 @@ fun WavingSeekBar(
                     },
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                FilledSeekBarSegment(
-                    color = MaterialTheme.colorScheme.primary,
-                    enableWaving = enableWaving && isPlaying && !isHandleInDrag,
-                    waveBackwards = !isLtr,
-                    waveWidth = with(density) {
-                        waveWidth.toPx()
-                    },
-                    strokeWidth = with(density) {
-                        strokeWidth.toPx()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth(
-                            animateFloatAsState(
-                                targetValue = handleOffsetFraction,
-                                label = "filled-seek-bar-segment-animation"
-                            ).value
-                        )
-                        .height(progressBarHeight)
-                )
+                val filledModifier = Modifier
+                    .fillMaxWidth(
+                        animateFloatAsState(
+                            targetValue = handleOffsetFraction,
+                            label = "filled-seek-bar-segment-animation"
+                        ).value
+                    )
+                    .height(progressBarHeight)
+                if (style == SeekBarStyle.DOTTED_GRANULAR) {
+                    DottedSeekBarSegment(
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = filledModifier
+                    )
+                } else {
+                    FilledSeekBarSegment(
+                        color = MaterialTheme.colorScheme.primary,
+                        enableWaving = style != SeekBarStyle.TRADITIONAL_LINE && enableWaving && isPlaying && !isHandleInDrag,
+                        waveBackwards = !isLtr,
+                        waveWidth = with(density) { effectiveWaveWidth.toPx() },
+                        strokeWidth = with(density) { effectiveStrokeWidth.toPx() },
+                        waveLayers = if (style == SeekBarStyle.MULTI_WAVE_SAMSUNG) 3 else 1,
+                        waveAmplitudeScale = when (style) {
+                            SeekBarStyle.SUBTLE_WAVE -> 0.35f
+                            SeekBarStyle.MULTI_WAVE_SAMSUNG -> 1.1f
+                            else -> 1f
+                        },
+                        modifier = filledModifier
+                    )
+                }
 
-                RestSeekBarSegment(
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    strokeWidth = with(density) {
-                        strokeWidth.toPx()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(progressBarHeight)
-                )
+                if (style == SeekBarStyle.DOTTED_GRANULAR) {
+                    DottedSeekBarSegment(
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        modifier = Modifier.fillMaxWidth().height(progressBarHeight)
+                    )
+                } else {
+                    RestSeekBarSegment(
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        strokeWidth = with(density) { effectiveStrokeWidth.toPx() },
+                        modifier = Modifier.fillMaxWidth().height(progressBarHeight)
+                    )
+                }
             }
 
             var lastAngle by remember {
                 mutableFloatStateOf(0f)
             }
             val handleRotation = rememberAnimatable(initialValue = 0f)
-            LaunchedEffect(isPlaying) {
+            LaunchedEffect(isPlaying, style) {
                 val startAngle = (lastAngle.toInt() % 90).toFloat()
-                while (isPlaying) {
+                while (isPlaying && style == SeekBarStyle.DEFAULT_WAVE) {
                     handleRotation.animateTo(
                         targetValue = startAngle + if (isLtr) 90f else -90f,
                         animationSpec = tween(durationMillis = 1000, easing = LinearEasing)
@@ -210,12 +227,12 @@ fun WavingSeekBar(
 
             SeekBarHandle(
                 modifier = Modifier
-                    .size(handleSize + handlePadding * 2)
+                    .size(effectiveHandleSize + handlePadding * 2)
                     .padding(handlePadding)
                     .offset(
                         x = animateDpAsState(
                             targetValue = with(density) {
-                                handleOffset.toDp() - (handleSize + handlePadding * 2) / 2
+                                handleOffset.toDp() - (effectiveHandleSize + handlePadding * 2) / 2
                             },
                             label = "seek-bar-handle-position-animation"
                         ).value
@@ -240,9 +257,14 @@ fun WavingSeekBar(
                     }
                     .align(Alignment.CenterStart)
                     .graphicsLayer {
-                        rotationZ = if (isPlaying) handleRotation.value else lastAngle
+                        rotationZ = if (style == SeekBarStyle.DEFAULT_WAVE) {
+                            if (isPlaying) handleRotation.value else 45f
+                        } else 0f
                     }
-                    .clip(RoundedCornerShape(handleSize / 3))
+                    .clip(
+                        if (style == SeekBarStyle.DEFAULT_WAVE) RoundedCornerShape(effectiveHandleSize / 3)
+                        else CircleShape
+                    )
                     .background(color = MaterialTheme.colorScheme.primary)
             )
         }
@@ -301,6 +323,8 @@ fun FilledSeekBarSegment(
     waveBackwards: Boolean = false,
     waveWidth: Float? = null,
     strokeWidth: Float = 10f,
+    waveLayers: Int = 1,
+    waveAmplitudeScale: Float = 1f,
     modifier: Modifier = Modifier
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "infinite-transition")
@@ -314,7 +338,7 @@ fun FilledSeekBarSegment(
         }
     }
     val waveHeight by animateFloatAsState(
-        targetValue = if (enableWaving) canvasHeight else 0f,
+        targetValue = if (enableWaving) canvasHeight * waveAmplitudeScale else 0f,
         label = "wave-height"
     )
 
@@ -339,24 +363,44 @@ fun FilledSeekBarSegment(
         }
     ) {
 
-        val path = Path().apply {
-            moveTo(x = 0f, y = canvasHeight / 2 + waveHeight * cos(-offset / waveWidth) / 2)
-            for (i in 0..size.width.toInt()) {
-                lineTo(
-                    x = i.toFloat(),
-                    y = canvasHeight / 2 + waveHeight * cos((i.toFloat() - offset) / waveWidth) / 2
-                )
+        repeat(waveLayers.coerceIn(1, 3)) { layer ->
+            val layers = waveLayers.coerceIn(1, 3)
+            val layerOffset = if (layers > 1) {
+                (layer - (layers - 1) / 2f) * canvasHeight * 0.25f
+            } else 0f
+            val layerAmplitude = if (layers > 1) waveHeight * 0.6f else waveHeight
+            val path = Path().apply {
+                moveTo(x = 0f, y = canvasHeight / 2 + layerOffset + layerAmplitude * cos(-offset / waveWidth + layer) / 2)
+                for (i in 0..size.width.toInt()) {
+                    lineTo(
+                        x = i.toFloat(),
+                        y = canvasHeight / 2 + layerOffset + layerAmplitude * cos((i.toFloat() - offset) / waveWidth + layer) / 2
+                    )
+                }
             }
-        }
-
-        drawPath(
-            path = path,
-            color = color,
-            style = Stroke(
-                width = strokeWidth,
-                cap = StrokeCap.Round
+            drawPath(
+                path = path,
+                color = color.copy(alpha = if (layer == 0) 1f else 0.5f),
+                style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
             )
-        )
+        }
+    }
+}
+
+@Composable
+fun DottedSeekBarSegment(
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Canvas(modifier = modifier) {
+        val radius = 1.5.dp.toPx()
+        val spacing = 5.dp.toPx()
+        val centerY = size.height / 2
+        var x = radius
+        while (x <= size.width) {
+            drawCircle(color = color, radius = radius, center = androidx.compose.ui.geometry.Offset(x, centerY))
+            x += spacing
+        }
     }
 }
 

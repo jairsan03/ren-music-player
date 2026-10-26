@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -37,6 +38,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import com.dn0ne.player.app.presentation.components.animatable.rememberAnimatable
 import com.dn0ne.player.app.presentation.components.isSystemInLandscapeOrientation
 import kotlinx.coroutines.launch
@@ -150,7 +152,10 @@ fun ColumnWithCollapsibleTopBar(
                 .height(with(density) { topBarHeight.value.toDp() }),
         ) {
             CompositionLocalProvider(
-                LocalContentColor provides MaterialTheme.colorScheme.onSurface
+                LocalContentColor provides MaterialTheme.colorScheme.onSurface,
+                LocalTextStyle provides LocalTextStyle.current.copy(
+                    lineHeight = 1.15.em
+                )
             ) {
                 topBarContent()
             }
@@ -285,7 +290,10 @@ fun LazyColumnWithCollapsibleTopBar(
                 .height(with(density) { topBarHeight.value.toDp() }),
         ) {
             CompositionLocalProvider(
-                LocalContentColor provides MaterialTheme.colorScheme.onSurface
+                LocalContentColor provides MaterialTheme.colorScheme.onSurface,
+                LocalTextStyle provides LocalTextStyle.current.copy(
+                    lineHeight = 1.15.em
+                )
             ) {
                 topBarContent()
             }

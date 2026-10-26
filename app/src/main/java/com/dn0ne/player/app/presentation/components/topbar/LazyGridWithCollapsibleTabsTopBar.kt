@@ -423,7 +423,12 @@ fun TabTitle(
             val context = LocalContext.current
             Text(
                 text = context.resources.getString(selectedTab.titleResId),
-                style = style,
+                style = if (selectedTab == Tab.Playlists) {
+                    style.copy(lineHeight = style.fontSize * 1.2f)
+                } else {
+                    style
+                },
+                textAlign = TextAlign.Center,
                 modifier = Modifier
                     .sharedBounds(
                         sharedContentState = rememberSharedContentState(selectedTab),
@@ -432,6 +437,7 @@ fun TabTitle(
                             boundTransformAnimationSpec
                         }
                     )
+                    .fillMaxWidth()
             )
 
             Box(

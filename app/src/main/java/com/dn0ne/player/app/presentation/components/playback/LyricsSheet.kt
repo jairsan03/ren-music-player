@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.MusicOff
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -96,13 +97,23 @@ fun LyricsSheet(
     onSeekTo: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    BackHandler {
+    val playbackState by playbackStateFlow.collectAsState()
+    BackHandler(enabled = playbackState.isLyricsSheetExpanded) {
         onBackClick()
     }
-    val playbackState by playbackStateFlow.collectAsState()
     val isLoadingLyrics by remember {
         derivedStateOf {
             playbackState.isLoadingLyrics
+        }
+    }
+    val lyricsLoadError by remember {
+        derivedStateOf {
+            playbackState.lyricsLoadError
+        }
+    }
+    val lyricsSearchFailed by remember {
+        derivedStateOf {
+            playbackState.lyricsSearchFailed
         }
     }
     val lyrics by remember {
@@ -222,7 +233,45 @@ fun LyricsSheet(
                                     modifier = Modifier.width(100.dp)
                                 )
                             } else {
-                                Text(text = context.resources.getString(R.string.cant_find_lyrics))
+                                val emptyTitle = context.resources.getString(
+                                    if (lyricsSearchFailed) {
+                                        R.string.lyrics_unavailable_title
+                                    } else if (lyricsLoadError) {
+                                        R.string.lyrics_load_error_title
+                                    } else {
+                                        R.string.lyrics_unavailable_title
+                                    }
+                                )
+                                val emptyMessage = context.resources.getString(
+                                    if (lyricsSearchFailed) {
+                                        R.string.lyrics_unavailable_message
+                                    } else if (lyricsLoadError) {
+                                        R.string.lyrics_processing_error
+                                    } else {
+                                        R.string.cant_find_lyrics
+                                    }
+                                )
+                                Icon(
+                                    imageVector = Icons.Outlined.MusicOff,
+                                    contentDescription = null,
+                                    tint = contentColor.copy(alpha = 0.75f),
+                                    modifier = Modifier.size(64.dp)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = emptyTitle,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = contentColor,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = emptyMessage,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = contentColor.copy(alpha = 0.88f),
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp)
+                                )
                             }
                         }
                     }

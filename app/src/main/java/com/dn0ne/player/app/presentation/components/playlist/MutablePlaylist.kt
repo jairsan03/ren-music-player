@@ -69,6 +69,7 @@ import com.dn0ne.player.app.presentation.components.TrackListItem
 import com.dn0ne.player.app.presentation.components.selection.selectionList
 import com.dn0ne.player.app.presentation.components.topbar.TopBarContent
 import com.dn0ne.player.app.presentation.components.trackinfo.SearchField
+import com.dn0ne.player.core.data.PlaybackIndicatorStyle
 import kotlinx.coroutines.FlowPreview
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -79,6 +80,12 @@ fun MutablePlaylist(
     listState: LazyListState = rememberLazyListState(),
     playlist: Playlist,
     currentTrack: Track?,
+    isPlaying: Boolean = false,
+    showPlaybackIndicator: Boolean = true,
+    playbackIndicatorStyle: PlaybackIndicatorStyle = PlaybackIndicatorStyle.ClassicBars,
+    queuedTracks: List<Track> = emptyList(),
+    nextTrack: Track? = null,
+    onRemoveFromQueueClick: (Track) -> Unit = {},
     onRenamePlaylistClick: () -> Unit,
     onDeletePlaylistClick: () -> Unit,
     onTrackClick: (Track, Playlist) -> Unit,
@@ -434,6 +441,12 @@ fun MutablePlaylist(
                     TrackListItem(
                         track = track,
                         isCurrent = currentTrack == track,
+                        isPlaying = isPlaying,
+                        showPlaybackIndicator = showPlaybackIndicator,
+                        playbackIndicatorStyle = playbackIndicatorStyle,
+                        isInQueue = queuedTracks.any { it.uri == track.uri },
+                        isNextInQueue = nextTrack?.uri == track.uri,
+                        onRemoveFromQueueClick = { onRemoveFromQueueClick(track) },
                         onClick = {
                             onTrackClick(
                                 track,

@@ -108,6 +108,10 @@ import com.dn0ne.player.app.presentation.components.topbar.TopBarContent
 import com.dn0ne.player.app.presentation.components.trackList
 import com.dn0ne.player.app.presentation.components.trackinfo.SearchField
 import com.dn0ne.player.app.presentation.components.trackinfo.TrackInfoSheet
+import com.dn0ne.player.core.data.PlaybackIndicatorStyle
+import com.dn0ne.player.ui.theme.Typography
+import com.dn0ne.player.ui.theme.renDarkColorScheme
+import com.dn0ne.player.ui.theme.renLightColorScheme
 import com.kmpalette.color
 import com.kmpalette.rememberDominantColorState
 import com.materialkolor.DynamicMaterialTheme
@@ -128,6 +132,8 @@ fun PlayerScreen(
 ) {
     val useDynamicColor by viewModel.settings.useDynamicColor.collectAsState()
     val useAlbumArtColor by viewModel.settings.useAlbumArtColor.collectAsState()
+    val showAnimatedPlaybackIndicator by viewModel.settings.showAnimatedPlaybackIndicator.collectAsState()
+    val playbackIndicatorStyle by viewModel.settings.playbackIndicatorStyle.collectAsState()
     val dominantColorState = rememberDominantColorState()
     var coverArtBitmap by remember {
         mutableStateOf<ImageBitmap?>(null)
@@ -164,14 +170,15 @@ fun PlayerScreen(
     val appearance by viewModel.settings.appearance.collectAsState()
     val amoledDarkTheme by viewModel.settings.amoledDarkTheme.collectAsState()
     val paletteStyle by viewModel.settings.paletteStyle.collectAsState()
+    val isDarkAppearance = when (appearance) {
+        Theme.Appearance.System -> isSystemInDarkTheme()
+        Theme.Appearance.Light -> false
+        Theme.Appearance.Dark -> true
+    }
     DynamicMaterialTheme(
         seedColor = colorToApply,
         primary = colorToApply.takeIf { it.toHct().chroma <= 20 },
-        useDarkTheme = when (appearance) {
-            Theme.Appearance.System -> isSystemInDarkTheme()
-            Theme.Appearance.Light -> false
-            Theme.Appearance.Dark -> true
-        },
+        useDarkTheme = isDarkAppearance,
         withAmoled = amoledDarkTheme,
         style = when (paletteStyle) {
             Theme.PaletteStyle.TonalSpot -> PaletteStyle.TonalSpot
@@ -183,10 +190,15 @@ fun PlayerScreen(
             Theme.PaletteStyle.Monochrome -> PaletteStyle.Monochrome
             Theme.PaletteStyle.Fidelity -> PaletteStyle.Fidelity
             Theme.PaletteStyle.Content -> PaletteStyle.Content
+            Theme.PaletteStyle.Ren -> PaletteStyle.TonalSpot
         },
         animationSpec = tween(300, 200),
         animate = true
     ) {
+        val activeColorScheme = if (paletteStyle == Theme.PaletteStyle.Ren) {
+            if (isDarkAppearance) renDarkColorScheme else renLightColorScheme
+        } else MaterialTheme.colorScheme
+        MaterialTheme(colorScheme = activeColorScheme, typography = Typography) {
         val rippleColor = MaterialTheme.colorScheme.primaryContainer
         val ripple = remember(rippleColor) {
             ripple(color = rippleColor)
@@ -335,7 +347,17 @@ fun PlayerScreen(
                                 selectedTab = it
                             },
                             trackList = trackList,
+                            queuedTracks = playbackState.playlist?.trackList.orEmpty(),
+                            nextTrack = playbackState.playlist?.trackList?.let { activeQueue ->
+                                val currentIndex = currentTrack?.let { current ->
+                                    activeQueue.indexOfFirst { it.uri == current.uri }
+                                } ?: -1
+                                if (currentIndex >= 0) activeQueue.getOrNull(currentIndex + 1) else null
+                            },
                             currentTrack = currentTrack,
+                            isPlaying = playbackState.isPlaying,
+                            showPlaybackIndicator = showAnimatedPlaybackIndicator,
+                            playbackIndicatorStyle = playbackIndicatorStyle,
                             onTrackClick = { track, playlist ->
                                 viewModel.onEvent(
                                     PlayerScreenEvent.OnTrackClick(
@@ -349,6 +371,13 @@ fun PlayerScreen(
                             },
                             onAddToQueueClick = {
                                 viewModel.onEvent(PlayerScreenEvent.OnAddToQueueClick(it))
+                            },
+                            onRemoveFromQueueClick = { track ->
+                                val queueIndex = playbackState.playlist?.trackList
+                                    ?.indexOfFirst { it.uri == track.uri } ?: -1
+                                if (queueIndex >= 0) {
+                                    viewModel.onEvent(PlayerScreenEvent.OnRemoveFromQueueClick(queueIndex))
+                                }
                             },
                             onAddToPlaylistClick = {
                                 showAddToOrCreatePlaylistSheet = true
@@ -501,6 +530,23 @@ fun PlayerScreen(
                                 listState = listState,
                                 playlist = playlist,
                                 currentTrack = currentTrack,
+                                isPlaying = playbackState.isPlaying,
+                                showPlaybackIndicator = showAnimatedPlaybackIndicator,
+                                playbackIndicatorStyle = playbackIndicatorStyle,
+                                queuedTracks = playbackState.playlist?.trackList.orEmpty(),
+                                nextTrack = playbackState.playlist?.trackList?.let { activeQueue ->
+                                    val currentIndex = currentTrack?.let { current ->
+                                        activeQueue.indexOfFirst { it.uri == current.uri }
+                                    } ?: -1
+                                    if (currentIndex >= 0) activeQueue.getOrNull(currentIndex + 1) else null
+                                },
+                                onRemoveFromQueueClick = { track ->
+                                    val queueIndex = playbackState.playlist?.trackList
+                                        ?.indexOfFirst { it.uri == track.uri } ?: -1
+                                    if (queueIndex >= 0) {
+                                        viewModel.onEvent(PlayerScreenEvent.OnRemoveFromQueueClick(queueIndex))
+                                    }
+                                },
                                 onTrackClick = { track, playlist ->
                                     viewModel.onEvent(
                                         PlayerScreenEvent.OnTrackClick(
@@ -610,6 +656,23 @@ fun PlayerScreen(
                                 listState = listState,
                                 playlist = playlist,
                                 currentTrack = currentTrack,
+                                isPlaying = playbackState.isPlaying,
+                                showPlaybackIndicator = showAnimatedPlaybackIndicator,
+                                playbackIndicatorStyle = playbackIndicatorStyle,
+                                queuedTracks = playbackState.playlist?.trackList.orEmpty(),
+                                nextTrack = playbackState.playlist?.trackList?.let { activeQueue ->
+                                    val currentIndex = currentTrack?.let { current ->
+                                        activeQueue.indexOfFirst { it.uri == current.uri }
+                                    } ?: -1
+                                    if (currentIndex >= 0) activeQueue.getOrNull(currentIndex + 1) else null
+                                },
+                                onRemoveFromQueueClick = { track ->
+                                    val queueIndex = playbackState.playlist?.trackList
+                                        ?.indexOfFirst { it.uri == track.uri } ?: -1
+                                    if (queueIndex >= 0) {
+                                        viewModel.onEvent(PlayerScreenEvent.OnRemoveFromQueueClick(queueIndex))
+                                    }
+                                },
                                 onRenamePlaylistClick = {
                                     showRenameSheet = true
                                 },
@@ -924,6 +987,7 @@ fun PlayerScreen(
                 )
             }
         }
+        }
     }
 }
 
@@ -934,10 +998,16 @@ fun MainPlayerScreen(
     defaultTab: Tab,
     onTabChange: (Tab) -> Unit = {},
     trackList: List<Track>,
+    queuedTracks: List<Track> = emptyList(),
+    nextTrack: Track? = null,
     currentTrack: Track?,
+    isPlaying: Boolean,
+    showPlaybackIndicator: Boolean,
+    playbackIndicatorStyle: PlaybackIndicatorStyle,
     onTrackClick: (Track, Playlist) -> Unit,
     onPlayNextClick: (Track) -> Unit,
     onAddToQueueClick: (List<Track>) -> Unit,
+    onRemoveFromQueueClick: (Track) -> Unit = {},
     onAddToPlaylistClick: (List<Track>) -> Unit,
     onViewTrackInfoClick: (Track) -> Unit,
     onGoToAlbumClick: (Track) -> Unit,
@@ -1283,6 +1353,12 @@ fun MainPlayerScreen(
                     trackList(
                         trackList = trackList.filterTracks(searchFieldValue),
                         currentTrack = currentTrack,
+                        isPlaying = isPlaying,
+                        showPlaybackIndicator = showPlaybackIndicator,
+                        playbackIndicatorStyle = playbackIndicatorStyle,
+                        queuedTracks = queuedTracks,
+                        nextTrack = nextTrack,
+                        onRemoveFromQueueClick = onRemoveFromQueueClick,
                         onTrackClick = {
                             onTrackClick(
                                 it,

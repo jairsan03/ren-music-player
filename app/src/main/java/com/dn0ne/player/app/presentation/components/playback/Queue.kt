@@ -7,6 +7,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,18 +16,23 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DragHandle
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -40,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -58,8 +65,12 @@ import com.dn0ne.player.app.domain.track.Playlist
 import com.dn0ne.player.app.domain.track.Track
 import com.dn0ne.player.app.domain.track.filterTracks
 import com.dn0ne.player.app.presentation.ScrollToTopAndLocateButtons
+import com.dn0ne.player.app.presentation.components.PlayingAudioAnimation
 import com.dn0ne.player.app.presentation.components.topbar.LazyColumnWithCollapsibleTopBar
 import com.dn0ne.player.app.presentation.components.trackinfo.SearchField
+import com.dn0ne.player.core.data.PlaybackIndicatorStyle
+import com.dn0ne.player.core.data.QueueHandlePosition
+import com.dn0ne.player.core.data.QueueStyle
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
@@ -68,6 +79,15 @@ fun Queue(
     listState: LazyListState ,
     playlist: Playlist?,
     currentTrack: Track?,
+    isPlaying: Boolean,
+    showTrackCount: Boolean,
+    showTotalDuration: Boolean,
+    showPlaybackIndicator: Boolean,
+    playbackIndicatorStyle: PlaybackIndicatorStyle,
+    queueHandlePosition: QueueHandlePosition,
+    queueStyle: QueueStyle,
+    showClearQueueButton: Boolean,
+    onClearQueueClick: () -> Unit,
     onRemoveFromQueueClick: (index: Int) -> Unit,
     onReorderingQueue: (from: Int, to: Int) -> Unit,
     onTrackClick: (Track, Playlist) -> Unit,
@@ -89,6 +109,9 @@ fun Queue(
             mutableStateOf("")
         }
         var showSearchField by rememberSaveable {
+            mutableStateOf(false)
+        }
+        var showClearQueueConfirmation by rememberSaveable {
             mutableStateOf(false)
         }
 
@@ -127,25 +150,49 @@ fun Queue(
 
         LazyColumnWithCollapsibleTopBar(
             listState = listState,
+            minTopBarHeight = 60.dp,
             topBarContent = {
-                Text(
-                    text = context.resources.getString(R.string.queue),
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontSize = lerp(
-                            start = MaterialTheme.typography.titleLarge.fontSize,
-                            stop = MaterialTheme.typography.headlineLarge.fontSize,
-                            fraction = collapseFraction
+                Column(
+                    modifier = Modifier.align(Alignment.Center).padding(horizontal = 92.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = context.resources.getString(R.string.queue),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontSize = lerp(
+                                start = MaterialTheme.typography.titleLarge.fontSize,
+                                stop = MaterialTheme.typography.headlineLarge.fontSize,
+                                fraction = collapseFraction
+                            )
                         ),
-                    ),
-                    softWrap = collapseFraction > .2f,
-                    overflow = if (collapseFraction > .2f) {
-                        TextOverflow.Clip
-                    } else TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(horizontal = if (collapseFraction > .2f) 28.dp else 108.dp)
-                )
+                        softWrap = collapseFraction > .2f,
+                        overflow = if (collapseFraction > .2f) TextOverflow.Clip else TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center
+                    )
+                    if ((showTrackCount || showTotalDuration) && collapseFraction > .2f) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        val totalSeconds = trackList.sumOf { it.duration.coerceAtLeast(0).toLong() } / 1000
+                        val summaryParts = buildList {
+                            if (showTrackCount) add(context.resources.getQuantityString(
+                                R.plurals.queue_track_count_summary,
+                                trackList.size,
+                                trackList.size
+                            ))
+                            if (showTotalDuration) add(context.getString(
+                                R.string.queue_duration_summary,
+                                totalSeconds / 3600,
+                                (totalSeconds % 3600) / 60,
+                                totalSeconds % 60
+                            ))
+                        }
+                        Text(
+                            text = summaryParts.joinToString(" • "),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
 
                 AnimatedContent(
                     targetState = showSearchField,
@@ -245,7 +292,8 @@ fun Queue(
             itemsIndexed(
                 items = trackList.filterTracks(searchFieldValue),
                 key = { index, track -> "${track.uri}" }
-            ) { index, track ->
+            ) { _, track ->
+                val queueIndex = trackList.indexOfFirst { it.uri == track.uri }
                 ReorderableItem(
                     state = reorderableListState,
                     key = "${track.uri}",
@@ -265,6 +313,11 @@ fun Queue(
                     QueueItem(
                         track = track,
                         isCurrent = currentTrack == track,
+                        isPlaying = isPlaying,
+                        showPlaybackIndicator = showPlaybackIndicator,
+                        playbackIndicatorStyle = playbackIndicatorStyle,
+                        handlePosition = queueHandlePosition,
+                        queueStyle = queueStyle,
                         onClick = {
                             playlist?.let {
                                 onTrackClick(
@@ -274,10 +327,12 @@ fun Queue(
                             }
                         },
                         onRemoveFromQueueClick = {
-                            trackList = trackList.toMutableList().apply {
-                                removeAt(index)
+                            if (queueIndex >= 0) {
+                                trackList = trackList.toMutableList().apply {
+                                    removeAt(queueIndex)
+                                }
+                                onRemoveFromQueueClick(queueIndex)
                             }
-                            onRemoveFromQueueClick(index)
                         },
                         dragHandle = {
                             IconButton(
@@ -301,7 +356,7 @@ fun Queue(
                                     imageVector = Icons.Rounded.DragHandle,
                                     contentDescription = context.resources.getString(R.string.reorder_track) + " ${track.title}",
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(60.dp)
+                                    modifier = Modifier.size(20.dp).alpha(0.55f)
                                 )
                             }
                         },
@@ -311,9 +366,13 @@ fun Queue(
                                 scaleY = scale
                                 scaleX = scale
                             }
-                            .clip(ShapeDefaults.Medium)
                             .background(
-                                color = backgroundColor
+                                color = backgroundColor,
+                                shape = if (queueStyle == QueueStyle.CAPSULE_ACTIVE && track == currentTrack && isPlaying) {
+                                    CircleShape
+                                } else {
+                                    ShapeDefaults.Medium
+                                }
                             )
                     )
                 }
@@ -363,7 +422,44 @@ fun Queue(
             },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(bottom = 8.dp)
+                .padding(bottom = if (showClearQueueButton && trackList.isNotEmpty()) 88.dp else 8.dp)
         )
+
+        if (showClearQueueButton && trackList.isNotEmpty()) {
+            ExtendedFloatingActionButton(
+                onClick = { showClearQueueConfirmation = true },
+                icon = {
+                    Icon(imageVector = Icons.Outlined.Delete, contentDescription = null)
+                },
+                text = { Text(context.getString(R.string.clear_queue)) },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 24.dp, bottom = 16.dp)
+            )
+        }
+
+        if (showClearQueueConfirmation) {
+            AlertDialog(
+                onDismissRequest = { showClearQueueConfirmation = false },
+                title = { Text(context.getString(R.string.clear_queue_confirm_title)) },
+                text = { Text(context.getString(R.string.clear_queue_confirm_message)) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showClearQueueConfirmation = false
+                        trackList = emptyList()
+                        onClearQueueClick()
+                    }) {
+                        Text(context.getString(R.string.clear_queue))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showClearQueueConfirmation = false }) {
+                        Text(context.getString(R.string.cancel))
+                    }
+                }
+            )
+        }
     }
 }

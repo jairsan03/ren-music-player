@@ -566,7 +566,7 @@ class PlayerViewModel(
                         onEvent(
                             OnReorderingQueue(
                                 trackIndex,
-                                (currentTrackIndex).coerceAtMost(playlist.trackList.lastIndex)
+                                (currentTrackIndex + 1).coerceAtMost(playlist.trackList.lastIndex)
                             )
                         )
                         return
@@ -1317,7 +1317,7 @@ class PlayerViewModel(
                     plain = syncedLyrics.map { it.second },
                     areFromRemote = false
                 )
-            } catch (_: IllegalArgumentException) {
+            } catch (_: Exception) {
                 Lyrics(
                     uri = track.uri.toString(),
                     plain = lyrics.split('\n'),
@@ -1370,40 +1370,53 @@ class PlayerViewModel(
         }
     }
 
-    private fun readLyricsFromTag(track: Track): Lyrics? {
+    private suspend fun readLyricsFromTag(
+        track: Track,
+        showSnackbar: Boolean = true,
+        onFailure: (() -> Unit)? = null
+    ): Lyrics? {
         var lyrics: Lyrics? = null
 
-        val readResult = lyricsReader.readFromTag(track)
+        val readResult = withContext(Dispatchers.IO) {
+            try {
+                lyricsReader.readFromTag(track)
+            } catch (_: Exception) {
+                Result.Error(DataError.Local.FailedToRead)
+            }
+        }
         when (readResult) {
             is Result.Success -> {
                 lyrics = readResult.data
             }
 
             is Result.Error -> {
-                viewModelScope.launch {
-                    when (readResult.error) {
-                        DataError.Local.NoReadPermission -> {
-                            SnackbarController.sendEvent(
-                                SnackbarEvent(
-                                    message = R.string.no_read_permission
+                onFailure?.invoke()
+                if (showSnackbar) {
+                    viewModelScope.launch {
+                        when (readResult.error) {
+                            DataError.Local.NoReadPermission -> {
+                                SnackbarController.sendEvent(
+                                    SnackbarEvent(
+                                        message = R.string.no_read_permission
+                                    )
                                 )
-                            )
-                        }
+                            }
 
-                        DataError.Local.FailedToRead -> {
-                            SnackbarController.sendEvent(
-                                SnackbarEvent(
-                                    message = R.string.failed_to_read
+                            DataError.Local.FailedToRead -> {
+                                SnackbarController.sendEvent(
+                                    SnackbarEvent(
+                                        message = R.string.failed_to_read
+                                    )
                                 )
-                            )
-                        }
+                            }
 
-                        else -> {
-                            SnackbarController.sendEvent(
-                                SnackbarEvent(
-                                    message = R.string.unknown_error_occurred
+                            else -> {
+                                SnackbarController.sendEvent(
+                                    SnackbarEvent(
+                                        message = R.string.unknown_error_occurred
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
                 }
@@ -1413,14 +1426,19 @@ class PlayerViewModel(
         return lyrics
     }
 
-    private suspend fun fetchLyrics(track: Track): Lyrics? {
+    private suspend fun fetchLyrics(
+        track: Track,
+        showSnackbar: Boolean = true
+    ): Lyrics? {
         return withContext(Dispatchers.IO) {
             if (track.title == null || track.artist == null) {
-                SnackbarController.sendEvent(
-                    SnackbarEvent(
-                        message = R.string.cant_look_for_lyrics_title_or_artist_is_missing
+                if (showSnackbar) {
+                    SnackbarController.sendEvent(
+                        SnackbarEvent(
+                            message = R.string.cant_look_for_lyrics_title_or_artist_is_missing
+                        )
                     )
-                )
+                }
                 return@withContext null
             }
 
@@ -1434,45 +1452,47 @@ class PlayerViewModel(
                 }
 
                 is Result.Error -> {
-                    when (result.error) {
-                        DataError.Network.BadRequest -> {
-                            SnackbarController.sendEvent(
-                                SnackbarEvent(
-                                    message = R.string.cant_look_for_lyrics_title_or_artist_is_missing
+                    if (showSnackbar) {
+                        when (result.error) {
+                            DataError.Network.BadRequest -> {
+                                SnackbarController.sendEvent(
+                                    SnackbarEvent(
+                                        message = R.string.cant_look_for_lyrics_title_or_artist_is_missing
+                                    )
                                 )
-                            )
-                        }
+                            }
 
-                        DataError.Network.NotFound -> {
-                            SnackbarController.sendEvent(
-                                SnackbarEvent(
-                                    message = R.string.lyrics_not_found
+                            DataError.Network.NotFound -> {
+                                SnackbarController.sendEvent(
+                                    SnackbarEvent(
+                                        message = R.string.lyrics_not_found
+                                    )
                                 )
-                            )
-                        }
+                            }
 
-                        DataError.Network.ParseError -> {
-                            SnackbarController.sendEvent(
-                                SnackbarEvent(
-                                    message = R.string.failed_to_parse_response
+                            DataError.Network.ParseError -> {
+                                SnackbarController.sendEvent(
+                                    SnackbarEvent(
+                                        message = R.string.failed_to_parse_response
+                                    )
                                 )
-                            )
-                        }
+                            }
 
-                        DataError.Network.NoInternet -> {
-                            SnackbarController.sendEvent(
-                                SnackbarEvent(
-                                    message = R.string.no_internet
+                            DataError.Network.NoInternet -> {
+                                SnackbarController.sendEvent(
+                                    SnackbarEvent(
+                                        message = R.string.no_internet
+                                    )
                                 )
-                            )
-                        }
+                            }
 
-                        else -> {
-                            SnackbarController.sendEvent(
-                                SnackbarEvent(
-                                    message = R.string.unknown_error_occurred
+                            else -> {
+                                SnackbarController.sendEvent(
+                                    SnackbarEvent(
+                                        message = R.string.unknown_error_occurred
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
                 }
@@ -1490,18 +1510,41 @@ class PlayerViewModel(
                 _playbackState.update {
                     it.copy(
                         lyrics = null,
-                        isLoadingLyrics = true
+                        isLoadingLyrics = true,
+                        lyricsLoadError = false,
+                        lyricsSearchFailed = false
                     )
                 }
 
-                var lyrics: Lyrics? = lyricsRepository.getLyricsByUri(currentTrack.uri.toString())
-                    ?: fetchLyrics(currentTrack) ?: readLyricsFromTag(currentTrack)
-                        ?.also { lyricsRepository.insertLyrics(it) }
+                var lyricsLoadError = false
+                var lyricsSearchFailed = false
+                val lyrics = try {
+                    val cachedLyrics = lyricsRepository.getLyricsByUri(currentTrack.uri.toString())
+                    val remoteLyrics = if (cachedLyrics == null) {
+                        fetchLyrics(currentTrack, showSnackbar = false)
+                    } else null
+                    if (cachedLyrics == null && remoteLyrics == null) {
+                        lyricsSearchFailed = true
+                    }
+
+                    cachedLyrics ?: remoteLyrics
+                        ?: readLyricsFromTag(currentTrack, showSnackbar = false) {
+                            lyricsLoadError = true
+                        }?.also { lyricsRepository.insertLyrics(it) }
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    lyricsLoadError = true
+                    lyricsSearchFailed = true
+                    null
+                }
 
                 _playbackState.update {
                     it.copy(
                         lyrics = lyrics,
-                        isLoadingLyrics = false
+                        isLoadingLyrics = false,
+                        lyricsLoadError = lyricsLoadError,
+                        lyricsSearchFailed = lyricsSearchFailed
                     )
                 }
             }

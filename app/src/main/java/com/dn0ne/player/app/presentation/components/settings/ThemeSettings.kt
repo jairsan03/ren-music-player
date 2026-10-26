@@ -56,6 +56,11 @@ import com.dn0ne.player.app.presentation.components.settings.Theme.Appearance
 import com.dn0ne.player.app.presentation.components.settings.Theme.PaletteStyle
 import com.dn0ne.player.app.presentation.components.topbar.ColumnWithCollapsibleTopBar
 import com.dn0ne.player.core.data.Settings
+import com.dn0ne.player.ui.theme.renLightBackground
+import com.dn0ne.player.ui.theme.renDarkBackground
+import com.dn0ne.player.ui.theme.renPrimary
+import com.dn0ne.player.ui.theme.renSecondary
+import com.dn0ne.player.ui.theme.renTertiary
 import com.kmpalette.DominantColorState
 import com.materialkolor.DynamicMaterialTheme
 
@@ -263,6 +268,13 @@ fun ThemeSettings(
                         settings.updatePaletteStyle(PaletteStyle.Content)
                     },
                     style = PaletteStyle.Content
+                ),
+                PaletteOption(
+                    title = context.resources.getString(R.string.palette_ren),
+                    onSelection = {
+                        settings.updatePaletteStyle(PaletteStyle.Ren)
+                    },
+                    style = PaletteStyle.Ren
                 )
             )
         }
@@ -317,17 +329,35 @@ fun ThemeSettings(
                             PaletteStyle.Monochrome -> com.materialkolor.PaletteStyle.Monochrome
                             PaletteStyle.Fidelity -> com.materialkolor.PaletteStyle.Fidelity
                             PaletteStyle.Content -> com.materialkolor.PaletteStyle.Content
+                            PaletteStyle.Ren -> com.materialkolor.PaletteStyle.TonalSpot
                         },
                         animate = true
                     ) {
-                        listOf(
-                            MaterialTheme.colorScheme.primary,
-                            MaterialTheme.colorScheme.secondary,
-                            MaterialTheme.colorScheme.tertiary,
-                            MaterialTheme.colorScheme.tertiaryContainer,
-                            MaterialTheme.colorScheme.secondaryContainer,
-                            MaterialTheme.colorScheme.primaryContainer,
-                        ).fastForEach {
+                        val isPreviewDark = when (selectedAppearance) {
+                            Appearance.System -> isDarkTheme
+                            Appearance.Light -> false
+                            Appearance.Dark -> true
+                        }
+                        val previewColors = if (option.style == PaletteStyle.Ren) {
+                            listOf(
+                                renPrimary,
+                                renSecondary,
+                                renTertiary,
+                                if (isPreviewDark) renDarkBackground else renLightBackground,
+                                MaterialTheme.colorScheme.primaryContainer,
+                                MaterialTheme.colorScheme.secondaryContainer
+                            )
+                        } else {
+                            listOf(
+                                MaterialTheme.colorScheme.primary,
+                                MaterialTheme.colorScheme.secondary,
+                                MaterialTheme.colorScheme.tertiary,
+                                MaterialTheme.colorScheme.tertiaryContainer,
+                                MaterialTheme.colorScheme.secondaryContainer,
+                                MaterialTheme.colorScheme.primaryContainer,
+                            )
+                        }
+                        previewColors.fastForEach {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -394,6 +424,7 @@ fun ThemeSettings(
                 .fillMaxWidth()
                 .padding(top = 8.dp)
         )
+
     }
 }
 
@@ -428,6 +459,7 @@ object Theme {
         FruitSalad,
         Monochrome,
         Fidelity,
-        Content
+        Content,
+        Ren
     }
 }

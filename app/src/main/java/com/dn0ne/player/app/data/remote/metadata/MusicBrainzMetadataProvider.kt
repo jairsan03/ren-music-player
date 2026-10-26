@@ -34,7 +34,7 @@ class MusicBrainzMetadataProvider(
     private val musicBrainzEndpoint = "https://musicbrainz.org/ws/2"
     private val coverArtArchiveEndpoint = "https://coverartarchive.org"
     private val userAgent =
-        "${context.resources.getString(R.string.app_name)}/${context.getAppVersionName()} ( dev.dn0ne@gmail.com )"
+        "${context.resources.getString(R.string.app_name)}/${context.getAppVersionName()} ( jairsama321@gmail.com )"
 
     override suspend fun searchMetadata(
         query: String,

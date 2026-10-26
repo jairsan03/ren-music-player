@@ -23,37 +23,54 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.dn0ne.player.R
 import com.dn0ne.player.app.domain.track.Track
 import com.dn0ne.player.app.presentation.components.CoverArt
+import com.dn0ne.player.app.presentation.components.PlayingAudioAnimation
+import com.dn0ne.player.core.data.PlaybackIndicatorStyle
+import com.dn0ne.player.core.data.QueueHandlePosition
+import com.dn0ne.player.core.data.QueueStyle
 
 @Composable
 fun QueueItem(
     track: Track,
     isCurrent: Boolean,
+    isPlaying: Boolean,
+    showPlaybackIndicator: Boolean,
+    playbackIndicatorStyle: PlaybackIndicatorStyle,
+    handlePosition: QueueHandlePosition,
+    queueStyle: QueueStyle,
     onClick: () -> Unit,
     onRemoveFromQueueClick: () -> Unit,
     dragHandle: @Composable () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isCapsuleActive = queueStyle == QueueStyle.CAPSULE_ACTIVE && isCurrent && isPlaying
+    val isCurrentPlaying = isCurrent && isPlaying
     Row(
         modifier = modifier
-            .clip(ShapeDefaults.Medium)
+            .clip(if (isCapsuleActive) CircleShape else ShapeDefaults.Medium)
             .clickable {
                 onClick()
             }
             .background(
-                color = if (isCurrent) MaterialTheme.colorScheme.surfaceContainerLow else Color.Transparent
+                color = when {
+                    isCapsuleActive -> MaterialTheme.colorScheme.surfaceContainerHigh
+                    isCurrent -> MaterialTheme.colorScheme.surfaceContainerLow
+                    else -> Color.Transparent
+                }
             )
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         val context = LocalContext.current
+        if (!isCurrentPlaying && handlePosition == QueueHandlePosition.LEFT) dragHandle()
         Row(
-            modifier = Modifier.fillMaxWidth(.8f),
+            modifier = Modifier.weight(1f),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
@@ -61,7 +78,7 @@ fun QueueItem(
                 uri = track.coverArtUri,
                 modifier = Modifier
                     .size(60.dp)
-                    .clip(ShapeDefaults.Small)
+                    .clip(if (isCapsuleActive) CircleShape else ShapeDefaults.Small)
             )
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -85,6 +102,13 @@ fun QueueItem(
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
+            if (isCurrent && isPlaying && showPlaybackIndicator) {
+                PlayingAudioAnimation(
+                    style = playbackIndicatorStyle,
+                    modifier = Modifier.size(width = 24.dp, height = 20.dp)
+                )
+            }
+
             IconButton(
                 onClick = onRemoveFromQueueClick
             ) {
@@ -95,7 +119,7 @@ fun QueueItem(
                 )
             }
 
-            dragHandle()
+            if (!isCurrentPlaying && handlePosition == QueueHandlePosition.RIGHT) dragHandle()
         }
     }
 }

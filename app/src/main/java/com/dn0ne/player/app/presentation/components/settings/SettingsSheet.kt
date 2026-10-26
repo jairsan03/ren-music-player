@@ -20,11 +20,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
+import androidx.compose.material.icons.outlined.QueueMusic
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.ColorLens
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.Radar
 import androidx.compose.material.icons.rounded.TableChart
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -181,6 +183,14 @@ fun SettingsSheet(
                                     }
                                 ),
                                 SettingsItem(
+                                    title = context.resources.getString(R.string.lyrics),
+                                    supportingText = context.resources.getString(R.string.lyrics_supporting_text),
+                                    icon = Icons.Rounded.Lyrics,
+                                    onClick = {
+                                        navController.navigate(SettingsRoutes.Lyrics)
+                                    }
+                                ),
+                                SettingsItem(
                                     title = context.resources.getString(R.string.theme),
                                     supportingText = context.resources.getString(R.string.theme_supporting_text),
                                     icon = Icons.Rounded.ColorLens,
@@ -189,11 +199,19 @@ fun SettingsSheet(
                                     }
                                 ),
                                 SettingsItem(
-                                    title = context.resources.getString(R.string.lyrics),
-                                    supportingText = context.resources.getString(R.string.lyrics_supporting_text),
-                                    icon = Icons.Rounded.Lyrics,
+                                    title = context.resources.getString(R.string.mini_player),
+                                    supportingText = context.resources.getString(R.string.mini_player_supporting_text),
+                                    icon = Icons.Rounded.PlayCircle,
                                     onClick = {
-                                        navController.navigate(SettingsRoutes.Lyrics)
+                                        navController.navigate(SettingsRoutes.MiniPlayer)
+                                    }
+                                ),
+                                SettingsItem(
+                                    title = context.resources.getString(R.string.queue_settings),
+                                    supportingText = context.resources.getString(R.string.queue_settings_explain),
+                                    icon = Icons.Outlined.QueueMusic,
+                                    onClick = {
+                                        navController.navigate(SettingsRoutes.Queue)
                                     }
                                 )
                             )
@@ -275,6 +293,22 @@ fun SettingsSheet(
                     )
                 }
 
+                composable<SettingsRoutes.MiniPlayer> {
+                    MiniPlayerSettings(
+                        settings = state.settings,
+                        onBackClick = { navController.navigateUp() },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
+                composable<SettingsRoutes.Queue> {
+                    QueueSettings(
+                        settings = state.settings,
+                        onBackClick = { navController.navigateUp() },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
                 composable<SettingsRoutes.Lyrics> {
                     LyricsSettings(
                         settings = state.settings,
@@ -317,6 +351,12 @@ sealed interface SettingsRoutes {
 
     @Serializable
     data object Theme : SettingsRoutes
+
+    @Serializable
+    data object MiniPlayer : SettingsRoutes
+
+    @Serializable
+    data object Queue : SettingsRoutes
 
     @Serializable
     data object Lyrics : SettingsRoutes

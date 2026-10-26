@@ -18,8 +18,8 @@ android {
         applicationId = "com.dn0ne.lotus"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1_002_000
-        versionName = "1.2.0"
+        versionCode = 1_002_001
+        versionName = "1.0.0"
 
         if (splitApks) {
             splits {
@@ -107,6 +107,7 @@ tasks.withType<com.android.build.gradle.internal.tasks.CompileArtProfileTask> {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
@@ -131,6 +132,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.coil)
+    implementation(libs.coil.network.ktor3)
     implementation(libs.kmpalette.core)
     implementation(libs.materialkolor)
     implementation(libs.jaudiotagger)

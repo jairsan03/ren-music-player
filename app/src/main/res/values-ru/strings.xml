@@ -7,7 +7,7 @@
     <string name="get_started">Начать</string>
     <string name="permissions">Разрешения</string>
     <string name="audio">Аудио</string>
-    <string name="explain_audio_permission_requirement">Lotus требует его, чтобы воспроизводить вашу замечательную музыку</string>
+    <string name="explain_audio_permission_requirement">Ren требует его, чтобы воспроизводить вашу замечательную музыку</string>
     <string name="grant_permission">Дать разрешение</string>
     <string name="next">Далее</string>
     <string name="grant_permission_in_settings">Пожалуйста, дайте разрешение в настройках</string>
@@ -319,8 +319,6 @@
     <string name="ignore_short_tracks_explain">Не показывать треки короче 30 секунд</string>
 
     <!-- About screen -->
-    <string name="repo">Репозиторий</string>
-    <string name="repo_explain">Ознакомьтесь с репозиторием проекта</string>
     <string name="feedback">Обратная связь</string>
     <string name="feedback_explain">Свяжитесь с нами, чтобы предложить функцию или сообщить о проблеме</string>
 

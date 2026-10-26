@@ -45,7 +45,10 @@ fun TrackMenu(
     onViewTrackInfoClick: () -> Unit,
     onGoToAlbumClick: () -> Unit,
     onGoToArtistClick: () -> Unit,
-    onRemoveFromPlaylistClick: (() -> Unit)? = null
+    onRemoveFromPlaylistClick: (() -> Unit)? = null,
+    isInQueue: Boolean = false,
+    isNextInQueue: Boolean = false,
+    onRemoveFromQueueClick: (() -> Unit)? = null
 ) {
     DropdownMenu(
         expanded = isExpanded,
@@ -56,35 +59,51 @@ fun TrackMenu(
         val context = LocalContext.current
         DropdownMenuItem(
             text = {
-                Text(text = context.resources.getString(R.string.play_next))
+                Text(
+                    text = context.resources.getString(
+                        if (isNextInQueue) R.string.remove_from_next else R.string.play_next
+                    )
+                )
             },
             onClick = {
-                onPlayNextClick()
+                if (isNextInQueue && onRemoveFromQueueClick != null) {
+                    onRemoveFromQueueClick()
+                } else {
+                    onPlayNextClick()
+                }
                 onDismissRequest()
             },
             leadingIcon = {
                 Icon(
-                    imageVector = Icons.Rounded.QueuePlayNext,
+                    imageVector = if (isNextInQueue) Icons.Rounded.PlaylistRemove else Icons.Rounded.QueuePlayNext,
                     contentDescription = null
                 )
             }
         )
 
-        DropdownMenuItem(
-            text = {
-                Text(text = context.resources.getString(R.string.add_to_queue))
-            },
-            onClick = {
-                onAddToQueueClick()
-                onDismissRequest()
-            },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Rounded.AddToQueue,
-                    contentDescription = null
-                )
-            }
-        )
+        if (isInQueue && onRemoveFromQueueClick != null) {
+            DropdownMenuItem(
+                text = { Text(text = context.resources.getString(R.string.remove_from_queue)) },
+                onClick = {
+                    onRemoveFromQueueClick()
+                    onDismissRequest()
+                },
+                leadingIcon = {
+                    Icon(imageVector = Icons.Rounded.PlaylistRemove, contentDescription = null)
+                }
+            )
+        } else {
+            DropdownMenuItem(
+                text = { Text(text = context.resources.getString(R.string.add_to_queue)) },
+                onClick = {
+                    onAddToQueueClick()
+                    onDismissRequest()
+                },
+                leadingIcon = {
+                    Icon(imageVector = Icons.Rounded.AddToQueue, contentDescription = null)
+                }
+            )
+        }
 
         DropdownMenuItem(
             text = {
@@ -203,6 +222,9 @@ fun TrackMenuButton(
     onGoToAlbumClick: () -> Unit,
     onGoToArtistClick: () -> Unit,
     onRemoveFromPlaylistClick: (() -> Unit)? = null,
+    isInQueue: Boolean = false,
+    isNextInQueue: Boolean = false,
+    onRemoveFromQueueClick: (() -> Unit)? = null,
 ) {
     Box {
         var isMenuExpanded by remember {
@@ -231,7 +253,10 @@ fun TrackMenuButton(
             onViewTrackInfoClick = onViewTrackInfoClick,
             onGoToAlbumClick = onGoToAlbumClick,
             onGoToArtistClick = onGoToArtistClick,
-            onRemoveFromPlaylistClick = onRemoveFromPlaylistClick
+            onRemoveFromPlaylistClick = onRemoveFromPlaylistClick,
+            isInQueue = isInQueue,
+            isNextInQueue = isNextInQueue,
+            onRemoveFromQueueClick = onRemoveFromQueueClick
         )
     }
 }

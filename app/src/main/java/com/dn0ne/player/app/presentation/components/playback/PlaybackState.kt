@@ -10,6 +10,8 @@ data class PlaybackState(
     val currentTrack: Track? = null,
     val lyrics: Lyrics? = null,
     val isLoadingLyrics: Boolean = false,
+    val lyricsLoadError: Boolean = false,
+    val lyricsSearchFailed: Boolean = false,
     val isPlaying: Boolean = false,
     val playbackMode: PlaybackMode = PlaybackMode.Repeat,
     val position: Long = 0L,

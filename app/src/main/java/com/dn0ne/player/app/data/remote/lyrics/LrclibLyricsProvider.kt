@@ -38,7 +38,7 @@ class LrclibLyricsProvider(
     private val lrclibEndpoint = "https://lrclib.net/api"
     private val logTag = "LrclibLyricsProvider"
     private val userAgent =
-        "${context.resources.getString(R.string.app_name)}/${context.getAppVersionName()} ( dev.dn0ne@gmail.com )"
+        "${context.resources.getString(R.string.app_name)}/${context.getAppVersionName()} ( jairsama321@gmail.com )"
 
     override suspend fun getLyrics(track: Track): Result<Lyrics, DataError.Network> {
         if (track.title == null || track.artist == null) {
@@ -79,7 +79,7 @@ class LrclibLyricsProvider(
                     var syncedLyrics: List<Pair<Int, String>>? = null
                     try {
                         syncedLyrics = lyricsDto.syncedLyrics?.toSyncedLyrics()
-                    } catch (e: IllegalArgumentException) {
+                    } catch (e: Exception) {
                         Log.i(logTag, e.message, e)
                     }
 

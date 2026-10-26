@@ -55,12 +55,19 @@ import com.dn0ne.player.app.presentation.components.topbar.LazyColumnWithCollaps
 import com.dn0ne.player.app.presentation.components.topbar.TopBarContent
 import com.dn0ne.player.app.presentation.components.trackList
 import com.dn0ne.player.app.presentation.components.trackinfo.SearchField
+import com.dn0ne.player.core.data.PlaybackIndicatorStyle
 
 @Composable
 fun Playlist(
     listState: LazyListState = rememberLazyListState(),
     playlist: Playlist,
     currentTrack: Track?,
+    isPlaying: Boolean = false,
+    showPlaybackIndicator: Boolean = true,
+    playbackIndicatorStyle: PlaybackIndicatorStyle = PlaybackIndicatorStyle.ClassicBars,
+    queuedTracks: List<Track> = emptyList(),
+    nextTrack: Track? = null,
+    onRemoveFromQueueClick: (Track) -> Unit = {},
     onTrackClick: (Track, Playlist) -> Unit,
     onPlayNextClick: (Track) -> Unit,
     onAddToQueueClick: (List<Track>) -> Unit,
@@ -338,6 +345,12 @@ fun Playlist(
             trackList(
                 trackList = playlist.trackList.filterTracks(searchFieldValue),
                 currentTrack = currentTrack,
+                isPlaying = isPlaying,
+                showPlaybackIndicator = showPlaybackIndicator,
+                playbackIndicatorStyle = playbackIndicatorStyle,
+                queuedTracks = queuedTracks,
+                nextTrack = nextTrack,
+                onRemoveFromQueueClick = onRemoveFromQueueClick,
                 onTrackClick = { track ->
                     onTrackClick(
                         track,

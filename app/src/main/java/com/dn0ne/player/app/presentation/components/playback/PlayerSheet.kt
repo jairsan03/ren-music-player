@@ -5,8 +5,12 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.calculateTargetValue
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -46,6 +50,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.ExpandMore
@@ -74,8 +79,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -93,6 +101,9 @@ import com.dn0ne.player.app.presentation.components.CoverArt
 import com.dn0ne.player.app.presentation.components.TrackMenuButton
 import com.dn0ne.player.app.presentation.components.isSystemInLandscapeOrientation
 import com.dn0ne.player.app.presentation.components.settings.Theme
+import com.dn0ne.player.core.data.MiniPlayerStyle
+import com.dn0ne.player.core.data.ProgressStyle
+import com.dn0ne.player.core.data.SeekBarStyle
 import com.dn0ne.player.core.data.Settings
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -126,6 +137,7 @@ fun PlayerSheet(
     modifier: Modifier = Modifier
 ) {
     val playbackState by playbackStateFlow.collectAsState()
+    val miniPlayerStyle by settings.miniPlayerStyle.collectAsState()
     val isExpanded by remember {
         derivedStateOf {
             playbackState.isPlayerExpanded
@@ -169,15 +181,15 @@ fun PlayerSheet(
                 val cornerRadius =
                     lerp(0.dp, 36.dp, this.translationY.absoluteValue / (thresholdY * 0.5f))
                 this.clip = true
-                this.shape = if (isExpanded) {
-                    RoundedCornerShape(cornerRadius)
-                } else {
-                    RoundedCornerShape(
+                this.shape = when {
+                    isExpanded -> RoundedCornerShape(cornerRadius)
+                    miniPlayerStyle == MiniPlayerStyle.CLASSIC_ROUNDED -> RoundedCornerShape(
                         topStart = 36.dp,
                         topEnd = 36.dp,
                         bottomStart = cornerRadius,
                         bottomEnd = cornerRadius
                     )
+                    else -> RectangleShape
                 }
             }
             .draggable(
@@ -221,7 +233,13 @@ fun PlayerSheet(
                     }
                 }
             )
-            .background(color = MaterialTheme.colorScheme.surfaceContainer)
+            .then(
+                if (isExpanded) {
+                    Modifier.background(color = MaterialTheme.colorScheme.surfaceContainer)
+                } else {
+                    Modifier
+                }
+            )
 
     ) { state ->
         when (state) {
@@ -237,8 +255,11 @@ fun PlayerSheet(
                     },
                     onPlayClick = onPlayClick,
                     onPauseClick = onPauseClick,
+                    onSeekToPreviousClick = onSeekToPreviousClick,
                     onSeekToNextClick = onSeekToNextClick,
-                    onCoverArtLoaded = onCoverArtLoaded
+                    onCoverArtLoaded = onCoverArtLoaded,
+                    settings = settings,
+                    miniPlayerStyle = miniPlayerStyle
                 )
             }
 
@@ -266,6 +287,8 @@ fun PlayerSheet(
                         )
                     },
                     onPlaybackModeClick = onPlaybackModeClick,
+                    settings = settings,
+                    onClearQueueClick = onReset,
                     onCoverArtLoaded = onCoverArtLoaded,
                     onPlayNextClick = onPlayNextClick,
                     onAddToQueueClick = onAddToQueueClick,
@@ -298,7 +321,7 @@ fun PlayerSheet(
                     },
                     lyricsContentColor = when {
                         settings.useDarkPaletteOnLyricsSheet && !isDarkTheme -> {
-                            MaterialTheme.colorScheme.surface
+                            Color.White
                         }
                         else -> MaterialTheme.colorScheme.inverseSurface
                     },
@@ -322,17 +345,51 @@ fun BottomPlayer(
     onClick: () -> Unit,
     onPlayClick: () -> Unit,
     onPauseClick: () -> Unit,
+    onSeekToPreviousClick: () -> Unit,
     onSeekToNextClick: () -> Unit,
     onCoverArtLoaded: (ImageBitmap?) -> Unit,
+    settings: Settings,
+    miniPlayerStyle: MiniPlayerStyle,
     modifier: Modifier = Modifier
 ) {
+    val floatingStyle = miniPlayerStyle == MiniPlayerStyle.FLOATING_RECT ||
+        miniPlayerStyle == MiniPlayerStyle.FLOATING_CAPSULE
+    val miniPlayerShape = when (miniPlayerStyle) {
+        MiniPlayerStyle.CLASSIC_ROUNDED -> RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp)
+        MiniPlayerStyle.CLASSIC_FLAT -> RectangleShape
+        MiniPlayerStyle.FLOATING_RECT -> ShapeDefaults.Large
+        MiniPlayerStyle.FLOATING_CAPSULE -> CircleShape
+    }
+    val compactMiniPlayer by settings.compactMiniPlayer.collectAsState()
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(IntrinsicSize.Min)
+            .then(
+                if (floatingStyle) {
+                    Modifier
+                        .navigationBarsPadding()
+                        .padding(start = 8.dp, end = 8.dp, bottom = 16.dp)
+                } else {
+                    Modifier
+                }
+            )
+            .shadow(
+                elevation = if (floatingStyle) 6.dp else 0.dp,
+                shape = miniPlayerShape
+            )
+            .clip(miniPlayerShape)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .then(
+                if (floatingStyle) {
+                    Modifier.height(if (compactMiniPlayer) 64.dp else 104.dp)
+                } else {
+                    Modifier.height(IntrinsicSize.Min)
+                }
+            )
             .clickable {
                 onClick()
-            }
+            },
+        contentAlignment = Alignment.Center
     ) {
         val playbackState by playbackStateFlow.collectAsState()
         val currentTrack by remember {
@@ -350,25 +407,91 @@ fun BottomPlayer(
                 playbackState.position
             }
         }
+        val showPreviousButton by settings.showMiniPlayerPreviousButton.collectAsState()
+        val showMiniPlayerProgress by settings.showMiniPlayerProgress.collectAsState()
+        val progressStyle by settings.progressStyle.collectAsState()
+        val circularCover by settings.circularMiniPlayerCover.collectAsState()
+        val rotateCover by settings.rotateMiniPlayerCover.collectAsState()
+        val shouldRotateCover = circularCover && rotateCover && isPlaying
+        val coverRotation = if (shouldRotateCover) {
+            val rotationTransition = rememberInfiniteTransition(label = "mini-player-vinyl-rotation")
+            val rotation by rotationTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = 360f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = 18_000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Restart
+                ),
+                label = "mini-player-cover-rotation"
+            )
+            rotation
+        } else 0f
 
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .fillMaxWidth(
-                    animateFloatAsState(
-                        targetValue = position.toFloat() / currentTrack.duration,
-                        animationSpec = tween(durationMillis = 1000, easing = LinearEasing),
-                        label = "bottom-player-progress"
-                    ).value
-                )
-                .background(color = MaterialTheme.colorScheme.surfaceContainerHigh)
-        )
+        if (showMiniPlayerProgress) {
+            val progressFraction = if (currentTrack.duration > 0L) {
+                (position.toFloat() / currentTrack.duration.toFloat()).coerceIn(0f, 1f)
+            } else {
+                0f
+            }
+            val animatedProgress by animateFloatAsState(
+                targetValue = progressFraction,
+                animationSpec = tween(durationMillis = 1000, easing = LinearEasing),
+                label = "bottom-player-progress"
+            )
+            val progressColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                when (progressStyle) {
+                    ProgressStyle.LEFT_TO_RIGHT -> Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(animatedProgress)
+                            .background(progressColor)
+                    )
+                    ProgressStyle.CENTER_OUTWARD -> Box(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .fillMaxHeight()
+                            .fillMaxWidth(animatedProgress)
+                            .background(progressColor)
+                    )
+                    ProgressStyle.GRADIENT_SWEEP -> Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(animatedProgress)
+                            .background(
+                                Brush.horizontalGradient(
+                                    colorStops = arrayOf(
+                                        0f to progressColor,
+                                        0.75f to progressColor,
+                                        1f to progressColor.copy(alpha = 0f)
+                                    )
+                                )
+                            )
+                    )
+                    ProgressStyle.TOP_LINE -> Box(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .fillMaxWidth(animatedProgress)
+                            .height(3.dp)
+                            .background(progressColor)
+                    )
+                }
+            }
+        }
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(28.dp),
+            modifier = if (floatingStyle) {
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 28.dp, vertical = if (compactMiniPlayer) 6.dp else 28.dp)
+            } else {
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 28.dp, vertical = if (compactMiniPlayer) 6.dp else 28.dp)
+            },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -381,24 +504,27 @@ fun BottomPlayer(
                         targetOffsetX = { -it / 5 }
                     )
                 },
-                label = "bottom-player-track-change-animation"
+                label = "bottom-player-track-change-animation",
+                modifier = Modifier.weight(1f)
             ) { currentTrack ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth(0.7f)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     CoverArt(
                         uri = currentTrack.coverArtUri,
                         onCoverArtLoaded = onCoverArtLoaded,
                         modifier = Modifier
-                            .size(48.dp)
-                            .clip(ShapeDefaults.Small)
+                            .size(if (compactMiniPlayer) 40.dp else 48.dp)
+                            .clip(if (circularCover) CircleShape else ShapeDefaults.Small)
+                            .graphicsLayer {
+                                rotationZ = coverRotation
+                            }
                     )
 
                     Spacer(modifier = Modifier.width(16.dp))
 
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         val context = LocalContext.current
                         Text(
                             text = currentTrack.title
@@ -419,8 +545,26 @@ fun BottomPlayer(
             }
 
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
+                if (showPreviousButton) {
+                    IconButton(onClick = onSeekToPreviousClick) {
+                        val layoutDirection = LocalLayoutDirection.current
+                        val isRtl = layoutDirection == LayoutDirection.Rtl
+                        Icon(
+                            imageVector = Icons.Rounded.SkipPrevious,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .size(36.dp)
+                                .graphicsLayer {
+                                    if (isRtl) rotationY = 180f
+                                }
+                        )
+                    }
+                }
+
                 if (isPlaying) {
                     IconButton(
                         onClick = onPauseClick,
@@ -471,6 +615,8 @@ fun BottomPlayer(
 @Composable
 fun ExpandedPlayer(
     playbackStateFlow: StateFlow<PlaybackState>,
+    settings: Settings,
+    onClearQueueClick: () -> Unit,
     onPlayClick: () -> Unit,
     onPauseClick: () -> Unit,
     onSeekToNextClick: () -> Unit,
@@ -500,6 +646,17 @@ fun ExpandedPlayer(
     }
 
     val playbackState by playbackStateFlow.collectAsState()
+    val showQueueTrackCount by settings.showQueueTrackCount.collectAsState()
+    val showQueueDuration by settings.showQueueDuration.collectAsState()
+    val showQueuePlaybackIndicator by settings.showQueuePlaybackIndicator.collectAsState()
+    val showClearQueueButton by settings.showClearQueueButton.collectAsState()
+    val playbackIndicatorStyle by settings.playbackIndicatorStyle.collectAsState()
+    val seekBarStyle by settings.seekBarStyle.collectAsState()
+    val playerCarouselPreview by settings.playerCarouselPreview.collectAsState()
+    val carouselPreviewTint by settings.carouselPreviewTint.collectAsState()
+    val carouselPreviewBlur by settings.carouselPreviewBlur.collectAsState()
+    val queueHandlePosition by settings.queueHandlePosition.collectAsState()
+    val queueStyle by settings.queueStyle.collectAsState()
     val showLyricsSheet by remember {
         derivedStateOf {
             playbackState.isLyricsSheetExpanded
@@ -631,18 +788,17 @@ fun ExpandedPlayer(
                         }
                     }
 
-                    AnimatedContent(
-                        targetState = currentTrack,
-                        label = "cover-art-animation"
-                    ) { track ->
-                        CoverArt(
-                            uri = track.coverArtUri,
-                            onCoverArtLoaded = onCoverArtLoaded,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(ShapeDefaults.Large)
-                        )
-                    }
+                    PlayerCarousel(
+                        currentTrack = currentTrack,
+                        tracks = playbackState.playlist?.trackList.orEmpty(),
+                        preview = playerCarouselPreview,
+                        applyPreviewTint = carouselPreviewTint,
+                        blurPreviews = carouselPreviewBlur,
+                        onPreviousClick = onSeekToPreviousClick,
+                        onNextClick = onSeekToNextClick,
+                        onCoverArtLoaded = onCoverArtLoaded,
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
                     Spacer(modifier = Modifier.height(28.dp))
 
@@ -688,6 +844,7 @@ fun ExpandedPlayer(
                         onSeekTo = onSeekTo,
                         onSeekToNextClick = onSeekToNextClick,
                         onSeekToPreviousClick = onSeekToPreviousClick,
+                        seekBarStyle = seekBarStyle,
                         modifier = Modifier
                             .fillMaxWidth()
                     )
@@ -705,20 +862,19 @@ fun ExpandedPlayer(
                             playbackState.currentTrack!!
                         }
                     }
-                    AnimatedContent(
-                        targetState = currentTrack,
-                        label = "cover-art-animation"
-                    ) { track ->
-                        CoverArt(
-                            uri = track.coverArtUri,
-                            onCoverArtLoaded = onCoverArtLoaded,
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(start = 28.dp)
-                                .padding(vertical = 28.dp)
-                                .clip(ShapeDefaults.ExtraLarge)
-                        )
-                    }
+                    PlayerCarousel(
+                        currentTrack = currentTrack,
+                        tracks = playbackState.playlist?.trackList.orEmpty(),
+                        preview = playerCarouselPreview,
+                        applyPreviewTint = carouselPreviewTint,
+                        blurPreviews = carouselPreviewBlur,
+                        onPreviousClick = onSeekToPreviousClick,
+                        onNextClick = onSeekToNextClick,
+                        onCoverArtLoaded = onCoverArtLoaded,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 28.dp, top = 28.dp, bottom = 28.dp)
+                    )
 
                     Box(
                         modifier = Modifier
@@ -866,6 +1022,7 @@ fun ExpandedPlayer(
                                 onSeekTo = onSeekTo,
                                 onSeekToNextClick = onSeekToNextClick,
                                 onSeekToPreviousClick = onSeekToPreviousClick,
+                                seekBarStyle = seekBarStyle,
                                 modifier = Modifier
                                     .fillMaxWidth()
                             )
@@ -920,6 +1077,15 @@ fun ExpandedPlayer(
                 listState = listState,
                 playlist = playlist,
                 currentTrack = currentTrack,
+                isPlaying = playbackState.isPlaying,
+                showTrackCount = showQueueTrackCount,
+                showTotalDuration = showQueueDuration,
+                showPlaybackIndicator = showQueuePlaybackIndicator,
+                playbackIndicatorStyle = playbackIndicatorStyle,
+                queueHandlePosition = queueHandlePosition,
+                queueStyle = queueStyle,
+                showClearQueueButton = showClearQueueButton,
+                onClearQueueClick = onClearQueueClick,
                 onRemoveFromQueueClick = onRemoveFromQueueClick,
                 onReorderingQueue = onReorderingQueue,
                 onTrackClick = onTrackClick,
@@ -947,6 +1113,7 @@ fun PlaybackControl(
     onSeekTo: (Long) -> Unit,
     onSeekToNextClick: () -> Unit,
     onSeekToPreviousClick: () -> Unit,
+    seekBarStyle: SeekBarStyle = SeekBarStyle.DEFAULT_WAVE,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -977,6 +1144,7 @@ fun PlaybackControl(
                 onSeekTo(it)
             },
             isPlaying = isPlaying,
+            style = seekBarStyle,
             modifier = Modifier.fillMaxWidth()
         )
 

@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -16,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.dn0ne.player.R
 import com.dn0ne.player.app.domain.track.Track
+import com.dn0ne.player.core.data.PlaybackIndicatorStyle
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -38,7 +39,13 @@ fun TrackListItem(
     onViewTrackInfoClick: () -> Unit,
     onGoToAlbumClick: () -> Unit,
     onGoToArtistClick: () -> Unit,
+    isPlaying: Boolean = false,
+    showPlaybackIndicator: Boolean = true,
+    playbackIndicatorStyle: PlaybackIndicatorStyle = PlaybackIndicatorStyle.ClassicBars,
     onRemoveFromPlaylistClick: (() -> Unit)? = null,
+    isInQueue: Boolean = false,
+    isNextInQueue: Boolean = false,
+    onRemoveFromQueueClick: (() -> Unit)? = null,
     dragHandle: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
@@ -56,11 +63,12 @@ fun TrackListItem(
             .padding(vertical = 8.dp)
             .padding(start = 8.dp, end = if (dragHandle != null) 8.dp else 0.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         val context = LocalContext.current
+        val shouldShowPlaybackIndicator = isCurrent && isPlaying && showPlaybackIndicator
         Row(
-            modifier = Modifier.fillMaxWidth(.8f),
+            modifier = Modifier.weight(1f),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
@@ -73,13 +81,17 @@ fun TrackListItem(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column {
-                Text(
-                    text = track.title ?: context.resources.getString(R.string.unknown_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.basicMarquee()
-                )
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = track.title ?: context.resources.getString(R.string.unknown_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier
+                            .weight(1f)
+                            .basicMarquee()
+                    )
+                }
                 Text(
                     text = track.artist ?: context.resources.getString(R.string.unknown_artist),
                     style = MaterialTheme.typography.bodyMedium,
@@ -89,20 +101,26 @@ fun TrackListItem(
             }
         }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TrackMenuButton(
-                onPlayNextClick = onPlayNextClick,
-                onAddToQueueClick = onAddToQueueClick,
-                onAddToPlaylistClick = onAddToPlaylistClick,
-                onViewTrackInfoClick = onViewTrackInfoClick,
-                onGoToAlbumClick = onGoToAlbumClick,
-                onGoToArtistClick = onGoToArtistClick,
-                onRemoveFromPlaylistClick = onRemoveFromPlaylistClick
+        if (shouldShowPlaybackIndicator) {
+            PlayingAudioAnimation(
+                style = playbackIndicatorStyle,
+                modifier = Modifier.size(width = 24.dp, height = 20.dp)
             )
-
-            dragHandle?.invoke()
         }
+
+        TrackMenuButton(
+            onPlayNextClick = onPlayNextClick,
+            onAddToQueueClick = onAddToQueueClick,
+            onAddToPlaylistClick = onAddToPlaylistClick,
+            onViewTrackInfoClick = onViewTrackInfoClick,
+            onGoToAlbumClick = onGoToAlbumClick,
+            onGoToArtistClick = onGoToArtistClick,
+            onRemoveFromPlaylistClick = onRemoveFromPlaylistClick,
+            isInQueue = isInQueue,
+            isNextInQueue = isNextInQueue,
+            onRemoveFromQueueClick = onRemoveFromQueueClick
+        )
+
+        dragHandle?.invoke()
     }
 }
