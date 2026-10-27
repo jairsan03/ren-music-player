@@ -60,7 +60,7 @@ fun WavingSeekBar(
     isPlaying: Boolean,
     onPositionChange: (Long) -> Unit,
     enableWaving: Boolean = true,
-    style: SeekBarStyle = SeekBarStyle.DEFAULT_WAVE,
+    style: SeekBarStyle = SeekBarStyle.MULTI_WAVE_SAMSUNG,
     waveHeight: Dp = 6.dp,
     waveWidth: Dp = 6.dp,
     strokeWidth: Dp = 3.dp,

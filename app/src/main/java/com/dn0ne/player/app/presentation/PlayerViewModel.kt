@@ -1290,6 +1290,34 @@ class PlayerViewModel(
         }
     }
 
+    fun shuffleAllAndPlay() {
+        val shuffledTracks = _trackList.value.shuffled()
+        val firstTrack = shuffledTracks.firstOrNull() ?: return
+        val activePlayer = player ?: return
+        val shuffledPlaylist = Playlist(name = null, trackList = shuffledTracks)
+
+        setPlayerPlaybackMode(PlaybackMode.Shuffle)
+        activePlayer.clearMediaItems()
+        activePlayer.addMediaItems(shuffledTracks.map { track -> track.mediaItem })
+        activePlayer.prepare()
+        activePlayer.seekTo(0, 0L)
+        activePlayer.play()
+
+        _playbackState.update {
+            it.copy(
+                playlist = shuffledPlaylist,
+                currentTrack = firstTrack,
+                position = 0L,
+                playbackMode = PlaybackMode.Shuffle
+            )
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            savedPlayerState.playlist = shuffledPlaylist
+            savedPlayerState.track = firstTrack
+            savedPlayerState.playbackMode = PlaybackMode.Shuffle
+        }
+    }
+
     fun setPickedCoverArtBytes(bytes: ByteArray) {
         _manualInfoEditSheetState.update {
             it.copy(

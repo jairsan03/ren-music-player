@@ -64,7 +64,20 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        installSplashScreen()
+        val splashScreen = installSplashScreen()
+        splashScreen.setOnExitAnimationListener { splashView ->
+            val splashIcon = splashView.iconView
+            splashIcon.alpha = 0f
+            splashIcon.scaleX = 0.92f
+            splashIcon.scaleY = 0.92f
+            splashIcon.animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(260L)
+                .withEndAction { splashView.remove() }
+                .start()
+        }
         enableEdgeToEdge()
 
         SingletonImageLoader.setSafe {

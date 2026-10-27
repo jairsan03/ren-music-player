@@ -17,13 +17,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ShowChart
 import androidx.compose.material.icons.outlined.Compress
 import androidx.compose.material.icons.outlined.Dock
 import androidx.compose.material.icons.outlined.GraphicEq
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Circle
 import androidx.compose.material.icons.rounded.Repeat
-import androidx.compose.material.icons.rounded.ShowChart
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.AlertDialog
@@ -117,7 +117,7 @@ fun MiniPlayerSettings(
             SettingSwitch(
                 title = context.getString(R.string.mini_player_progress),
                 supportingText = context.getString(R.string.mini_player_progress_explain),
-                icon = Icons.Rounded.ShowChart,
+                icon = Icons.AutoMirrored.Rounded.ShowChart,
                 isChecked = showProgress,
                 onCheckedChange = { enabled ->
                     settings.updateShowMiniPlayerProgress(enabled)

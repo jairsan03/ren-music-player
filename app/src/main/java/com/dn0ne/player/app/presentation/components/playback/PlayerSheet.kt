@@ -1113,7 +1113,7 @@ fun PlaybackControl(
     onSeekTo: (Long) -> Unit,
     onSeekToNextClick: () -> Unit,
     onSeekToPreviousClick: () -> Unit,
-    seekBarStyle: SeekBarStyle = SeekBarStyle.DEFAULT_WAVE,
+    seekBarStyle: SeekBarStyle = SeekBarStyle.MULTI_WAVE_SAMSUNG,
     modifier: Modifier = Modifier
 ) {
     Column(

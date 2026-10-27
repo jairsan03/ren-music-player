@@ -3,6 +3,7 @@ package com.dn0ne.player.core.util
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import com.dn0ne.player.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -22,17 +23,14 @@ sealed interface UpdateCheckResult {
 }
 
 object GitHubUpdateChecker {
-    // The repository can be changed here without touching the UI or version comparison.
-    private const val LATEST_RELEASE_API =
-        "https://api.github.com/repos/jssanchez03/lotus/releases/latest"
-
     suspend fun check(context: Context): UpdateCheckResult = withContext(Dispatchers.IO) {
-        val connection = (URL(LATEST_RELEASE_API).openConnection() as HttpURLConnection).apply {
+        val latestReleaseApi = context.getString(R.string.url_github_latest_release_api)
+        val connection = (URL(latestReleaseApi).openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"
             connectTimeout = 10_000
             readTimeout = 10_000
             setRequestProperty("Accept", "application/vnd.github+json")
-            setRequestProperty("User-Agent", "Lotus-Android")
+            setRequestProperty("User-Agent", "Ren-Android")
         }
 
         try {
@@ -47,7 +45,10 @@ object GitHubUpdateChecker {
                 val json = JSONObject(reader.readText())
                 val tagName = json.optString("tag_name")
                 require(tagName.isNotBlank()) { "Release tag is missing" }
-                val htmlUrl = json.optString("html_url", "https://github.com/jssanchez03/lotus/releases")
+                val htmlUrl = json.optString(
+                    "html_url",
+                    "${context.getString(R.string.url_ren_repository)}/releases"
+                )
                 val assets = json.optJSONArray("assets")
                 val apkUrl = (0 until (assets?.length() ?: 0))
                     .mapNotNull { assets?.optJSONObject(it) }
@@ -83,8 +84,16 @@ object GitHubUpdateChecker {
     }
 
     private fun compareVersions(remote: String, installed: String): Int {
-        fun components(version: String): List<Int> =
-            Regex("\\d+").findAll(version).take(3).map { it.value.toInt() }.toList()
+        fun components(version: String): List<Int> {
+            val normalized = version.trim()
+                .removePrefix("v")
+                .removePrefix("V")
+                .substringBefore('-')
+                .substringBefore('+')
+            return normalized.split('.')
+                .take(3)
+                .map { it.takeWhile(Char::isDigit).toIntOrNull() ?: 0 }
+        }
 
         val left = components(remote)
         val right = components(installed)

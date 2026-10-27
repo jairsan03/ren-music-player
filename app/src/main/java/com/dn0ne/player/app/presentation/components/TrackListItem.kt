@@ -41,7 +41,7 @@ fun TrackListItem(
     onGoToArtistClick: () -> Unit,
     isPlaying: Boolean = false,
     showPlaybackIndicator: Boolean = true,
-    playbackIndicatorStyle: PlaybackIndicatorStyle = PlaybackIndicatorStyle.ClassicBars,
+    playbackIndicatorStyle: PlaybackIndicatorStyle = PlaybackIndicatorStyle.CenterBars,
     onRemoveFromPlaylistClick: (() -> Unit)? = null,
     isInQueue: Boolean = false,
     isNextInQueue: Boolean = false,

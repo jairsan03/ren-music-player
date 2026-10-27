@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.QueueMusic
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.GraphicEq
-import androidx.compose.material.icons.outlined.QueueMusic
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.DragHandle
@@ -91,7 +91,7 @@ fun QueueSettings(
                 SettingSwitch(
                     title = context.getString(R.string.show_queue_track_count),
                     supportingText = context.getString(R.string.show_queue_track_count_explain),
-                    icon = Icons.Outlined.QueueMusic,
+                    icon = Icons.AutoMirrored.Outlined.QueueMusic,
                     isChecked = showTrackCount,
                     onCheckedChange = settings::updateShowQueueTrackCount,
                     modifier = Modifier.fillMaxWidth()
@@ -133,7 +133,7 @@ fun QueueSettings(
                         SettingsItem(
                             title = context.getString(R.string.queue_style),
                             supportingText = context.getString(if (queueStyle == QueueStyle.STANDARD) R.string.queue_style_standard else R.string.queue_style_capsule_active),
-                            icon = Icons.Outlined.QueueMusic,
+                            icon = Icons.AutoMirrored.Outlined.QueueMusic,
                             onClick = { showQueueStyleDialog = true }
                         )
                     ),

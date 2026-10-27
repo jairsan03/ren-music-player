@@ -41,6 +41,7 @@ import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.MyLocation
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.SelectAll
+import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
@@ -381,6 +382,7 @@ fun PlayerScreen(
                                     )
                                 )
                             },
+                            onShuffleAllTracksClick = viewModel::shuffleAllAndPlay,
                             onPlayNextClick = {
                                 viewModel.onEvent(PlayerScreenEvent.OnPlayNextClick(it))
                             },
@@ -1020,6 +1022,7 @@ fun MainPlayerScreen(
     showPlaybackIndicator: Boolean,
     playbackIndicatorStyle: PlaybackIndicatorStyle,
     onTrackClick: (Track, Playlist) -> Unit,
+    onShuffleAllTracksClick: () -> Unit,
     onPlayNextClick: (Track) -> Unit,
     onAddToQueueClick: (List<Track>) -> Unit,
     onRemoveFromQueueClick: (Track) -> Unit = {},
@@ -1156,6 +1159,15 @@ fun MainPlayerScreen(
                             }
 
                             Row {
+                                if (tab == Tab.Tracks) {
+                                    IconButton(onClick = onShuffleAllTracksClick) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Shuffle,
+                                            contentDescription = context.getString(R.string.shuffle_all_tracks)
+                                        )
+                                    }
+                                }
+
                                 if (tab != Tab.Tracks) {
                                     IconButton(
                                         onClick = onGridPlaylistsClick

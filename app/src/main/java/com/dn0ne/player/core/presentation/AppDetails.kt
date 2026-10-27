@@ -1,6 +1,12 @@
 package com.dn0ne.player.core.presentation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,7 +21,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -41,17 +49,28 @@ fun AppDetails(
     else R.drawable.ren_logo_completo_claro_sin_fondo
 
     if (!bentoStyle) {
+        val logoVisibility = remember {
+            MutableTransitionState(false).apply { targetState = true }
+        }
         Column(
             modifier = modifier,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                bitmap = ImageBitmap.imageResource(logo),
-                contentDescription = context.getString(R.string.app_name),
-                modifier = Modifier.size(200.dp),
-                contentScale = ContentScale.Fit,
-                filterQuality = FilterQuality.High
-            )
+            AnimatedVisibility(
+                visibleState = logoVisibility,
+                enter = fadeIn(animationSpec = tween(420)) + scaleIn(
+                    initialScale = 0.92f,
+                    animationSpec = tween(420)
+                )
+            ) {
+                Image(
+                    bitmap = ImageBitmap.imageResource(logo),
+                    contentDescription = context.getString(R.string.app_name),
+                    modifier = Modifier.size(210.dp),
+                    contentScale = ContentScale.Fit,
+                    filterQuality = FilterQuality.High
+                )
+            }
             Spacer(modifier = Modifier.height(12.dp))
             Text(text = context.getAppVersionName(), color = MaterialTheme.colorScheme.outline)
         }
@@ -67,14 +86,22 @@ fun AppDetails(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 22.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                bitmap = ImageBitmap.imageResource(logo),
-                contentDescription = context.getString(R.string.app_name),
-                modifier = Modifier.size(width = 250.dp, height = 150.dp),
-                contentScale = ContentScale.Fit,
-                filterQuality = FilterQuality.High
-            )
-            Spacer(modifier = Modifier.height(12.dp))
+            Box(
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .size(width = 220.dp, height = 172.dp)
+                    .clipToBounds(),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Image(
+                    bitmap = ImageBitmap.imageResource(logo),
+                    contentDescription = context.getString(R.string.app_name),
+                    modifier = Modifier.size(220.dp),
+                    contentScale = ContentScale.Fit,
+                    filterQuality = FilterQuality.High
+                )
+            }
+            Spacer(modifier = Modifier.height(1.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.secondaryContainer) {
                     Text(
@@ -99,7 +126,7 @@ fun AppDetails(
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = description,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )

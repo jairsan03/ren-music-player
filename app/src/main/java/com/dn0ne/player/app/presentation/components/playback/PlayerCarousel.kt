@@ -1,8 +1,11 @@
 package com.dn0ne.player.app.presentation.components.playback
 
 import android.os.Build
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
@@ -21,6 +24,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
@@ -30,7 +34,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.Dp
 import androidx.compose.runtime.snapshotFlow
 import coil3.compose.AsyncImage
 import coil3.toBitmap
@@ -60,6 +63,12 @@ fun PlayerCarousel(
     val activeIndex by rememberUpdatedState(currentIndex)
     val pagerState = rememberPagerState(initialPage = currentIndex) { pagerTracks.size }
     var synchronizingWithPlayback by remember { mutableStateOf(false) }
+    var isExpanded by remember(currentTrack.uri) { mutableStateOf(false) }
+    val expansionProgress by animateFloatAsState(
+        targetValue = if (isExpanded) 1f else 0f,
+        animationSpec = tween(durationMillis = 300),
+        label = "carousel-cover-expansion"
+    )
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.settledPage }
@@ -85,36 +94,32 @@ fun PlayerCarousel(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
-            .aspectRatio(
-                when (preview) {
-                    PlayerCarouselPreview.NONE -> 1f
-                    PlayerCarouselPreview.SINGLE_SIDE -> 1.28f
-                    PlayerCarouselPreview.BOTH_SIDES -> 1.5f
-                }
-            )
+            .aspectRatio(1f)
     ) {
         val width = maxWidth
-        val pageWidth: Dp
-        val pagerPadding: PaddingValues
-        when (preview) {
-            PlayerCarouselPreview.NONE -> {
-                pageWidth = width
-                pagerPadding = PaddingValues(0.dp)
-            }
-            PlayerCarouselPreview.SINGLE_SIDE -> {
-                pageWidth = width * 0.76f
-                pagerPadding = PaddingValues(start = width * 0.06f, end = width * 0.18f)
-            }
-            PlayerCarouselPreview.BOTH_SIDES -> {
-                pageWidth = width * 0.69f
-                pagerPadding = PaddingValues(horizontal = width * 0.155f)
-            }
+        val basePageWidthFactor = when (preview) {
+            PlayerCarouselPreview.NONE -> 1f
+            PlayerCarouselPreview.SINGLE_SIDE -> 0.76f
+            PlayerCarouselPreview.BOTH_SIDES -> 0.69f
         }
+        val pageWidthFactor = basePageWidthFactor + (0.82f - basePageWidthFactor) * expansionProgress
+        val pageWidth = width * pageWidthFactor
+        val (baseStartPaddingFactor, baseEndPaddingFactor) = when (preview) {
+            PlayerCarouselPreview.NONE -> 0f to 0f
+            PlayerCarouselPreview.SINGLE_SIDE -> 0.06f to 0.18f
+            PlayerCarouselPreview.BOTH_SIDES -> 0.155f to 0.155f
+        }
+        val startPaddingFactor = baseStartPaddingFactor + (0.09f - baseStartPaddingFactor) * expansionProgress
+        val endPaddingFactor = baseEndPaddingFactor + (0.09f - baseEndPaddingFactor) * expansionProgress
+        val pagerPadding = PaddingValues(
+            start = width * startPaddingFactor,
+            end = width * endPaddingFactor
+        )
 
         HorizontalPager(
             state = pagerState,
             pageSize = if (preview == PlayerCarouselPreview.NONE) PageSize.Fill else PageSize.Fixed(pageWidth),
-            pageSpacing = 12.dp,
+            pageSpacing = 12.dp * (1f - expansionProgress),
             contentPadding = pagerPadding,
             modifier = Modifier.fillMaxSize()
         ) { page ->
@@ -136,33 +141,52 @@ fun PlayerCarousel(
                     drawRect(previewOverlay.copy(alpha = 0.34f * pageProgress))
                 }
             }
-            val pageScale = 0.85f + 0.15f * (1f - pageProgress)
+            val pageScale = if (isAdjacent) {
+                (0.85f + 0.15f * (1f - pageProgress)) * (1f - 0.08f * expansionProgress)
+            } else {
+                1f + 0.025f * expansionProgress
+            }
+            val pageAlpha = if (isAdjacent) 1f - expansionProgress else 1f
 
-            AsyncImage(
-                model = track.coverArtUri,
-                contentDescription = track.title,
-                contentScale = ContentScale.Crop,
-                onSuccess = { result ->
-                    if (track.uri == currentTrack.uri) {
-                        onCoverArtLoaded(result.result.image.toBitmap().asImageBitmap())
-                    }
-                },
-                onError = { result ->
-                    if (track.uri == currentTrack.uri) {
-                        onCoverArtLoaded(result.result.image?.toBitmap()?.asImageBitmap())
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer { scaleX = pageScale; scaleY = pageScale }
-                    .clip(coverShape)
-                    .then(blurModifier)
-                    .then(overlayModifier)
-                    .clip(coverShape)
-                    .clickable(enabled = isAdjacent) {
-                        if (page < activeIndex) onPreviousClick() else onNextClick()
-                    }
-            )
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                AsyncImage(
+                    model = track.coverArtUri,
+                    contentDescription = track.title,
+                    contentScale = ContentScale.Crop,
+                    onSuccess = { result ->
+                        if (track.uri == currentTrack.uri) {
+                            onCoverArtLoaded(result.result.image.toBitmap().asImageBitmap())
+                        }
+                    },
+                    onError = { result ->
+                        if (track.uri == currentTrack.uri) {
+                            onCoverArtLoaded(result.result.image?.toBitmap()?.asImageBitmap())
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f)
+                        .graphicsLayer {
+                            scaleX = pageScale
+                            scaleY = pageScale
+                            alpha = pageAlpha
+                        }
+                        .clip(coverShape)
+                        .then(blurModifier)
+                        .then(overlayModifier)
+                        .clip(coverShape)
+                        .clickable {
+                            if (!isAdjacent) {
+                                isExpanded = !isExpanded
+                            } else if (!isExpanded) {
+                                if (page < activeIndex) onPreviousClick() else onNextClick()
+                            }
+                        }
+                )
+            }
         }
     }
 }

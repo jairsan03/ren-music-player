@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,12 +44,13 @@ fun NothingYet(modifier: Modifier = Modifier) {
             Image(
                 painter = painterResource(R.drawable.ren_logo_principal_gris_sin_fondo),
                 contentDescription = null,
-                modifier = Modifier.size(112.dp)
+                modifier = Modifier.size(136.dp)
             )
 
             Text(
                 text = context.resources.getString(R.string.nothing_yet),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.offset(y = (-16).dp)
             )
         }
     }

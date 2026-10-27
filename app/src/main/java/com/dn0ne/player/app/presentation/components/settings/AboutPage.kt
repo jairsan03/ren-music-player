@@ -1,7 +1,8 @@
 package com.dn0ne.player.app.presentation.components.settings
 
+import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -17,8 +18,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.OpenInNew
+import androidx.compose.material.icons.outlined.Gavel
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.OpenInNew
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.QuestionAnswer
 import androidx.compose.material.icons.rounded.Update
 import androidx.compose.material3.AlertDialog
@@ -28,7 +31,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -42,13 +44,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
-import coil3.compose.AsyncImage
 import com.dn0ne.player.R
 import com.dn0ne.player.app.presentation.components.topbar.ColumnWithCollapsibleTopBar
 import com.dn0ne.player.core.presentation.AppDetails
@@ -60,7 +62,6 @@ import kotlinx.coroutines.launch
 private sealed interface AboutUpdateDialog {
     data object Checking : AboutUpdateDialog
     data class Available(val release: GitHubRelease) : AboutUpdateDialog
-    data class UpToDate(val versionName: String) : AboutUpdateDialog
     data object Failed : AboutUpdateDialog
 }
 
@@ -73,6 +74,7 @@ fun AboutPage(
     val uriHandler = LocalUriHandler.current
     val coroutineScope = rememberCoroutineScope()
     var updateDialog by remember { mutableStateOf<AboutUpdateDialog?>(null) }
+    var showLicensesDialog by remember { mutableStateOf(false) }
     var collapseFraction by remember {
         mutableFloatStateOf(0f)
     }
@@ -130,30 +132,12 @@ fun AboutPage(
                 modifier = Modifier.fillMaxWidth().padding(18.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
+                Image(
+                    painter = painterResource(R.drawable.avatar_jair),
+                    contentDescription = context.getString(R.string.developer_name),
                     modifier = Modifier.size(64.dp).clip(CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primaryContainer
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                text = "JS",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                    }
-                    AsyncImage(
-                        model = context.getString(R.string.developer_github_avatar_url),
-                        contentDescription = context.getString(R.string.developer_name),
-                        modifier = Modifier.fillMaxSize().clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                }
+                    contentScale = ContentScale.Crop
+                )
                 Spacer(Modifier.width(16.dp))
                 Column(Modifier.weight(1f)) {
                     Text(
@@ -168,10 +152,10 @@ fun AboutPage(
                     )
                 }
                 IconButton(onClick = {
-                    uriHandler.openUri(context.getString(R.string.developer_github_url))
+                    uriHandler.openUri(context.getString(R.string.url_developer_github))
                 }) {
                     Icon(
-                        imageVector = Icons.Rounded.OpenInNew,
+                        imageVector = Icons.AutoMirrored.Rounded.OpenInNew,
                         contentDescription = context.getString(R.string.open_developer_profile)
                     )
                 }
@@ -183,12 +167,25 @@ fun AboutPage(
             shape = RoundedCornerShape(28.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
         ) {
+            AboutGroupedAction(
+                title = context.getString(R.string.about_donation_title),
+                supportingText = context.getString(R.string.about_donation_explain),
+                icon = Icons.Rounded.Favorite,
+                onClick = { uriHandler.openUri(context.getString(R.string.url_donation_kofi)) }
+            )
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(28.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+        ) {
             Column {
                 AboutGroupedAction(
                     title = context.getString(R.string.about_credits_title),
                     supportingText = context.getString(R.string.about_attribution),
-                    icon = Icons.Rounded.OpenInNew,
-                    onClick = { uriHandler.openUri(context.getString(R.string.original_project_url)) }
+                    icon = Icons.AutoMirrored.Rounded.OpenInNew,
+                    onClick = { uriHandler.openUri(context.getString(R.string.url_original_lotus)) }
                 )
                 HorizontalDivider(
                     modifier = Modifier.padding(horizontal = 20.dp),
@@ -198,7 +195,7 @@ fun AboutPage(
                     title = context.getString(R.string.feedback),
                     supportingText = context.getString(R.string.feedback_explain),
                     icon = Icons.Rounded.QuestionAnswer,
-                    onClick = { uriHandler.openUri(context.getString(R.string.feedback_url)) }
+                    onClick = { uriHandler.openUri(context.getString(R.string.url_github_issues)) }
                 )
                 HorizontalDivider(
                     modifier = Modifier.padding(horizontal = 20.dp),
@@ -214,13 +211,30 @@ fun AboutPage(
                             updateDialog = try {
                                 when (val result = GitHubUpdateChecker.check(context)) {
                                     is UpdateCheckResult.Available -> AboutUpdateDialog.Available(result.release)
-                                    is UpdateCheckResult.UpToDate -> AboutUpdateDialog.UpToDate(result.versionName)
+                                    is UpdateCheckResult.UpToDate -> {
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.update_success_toast, result.versionName),
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                        null
+                                    }
                                 }
                             } catch (_: Exception) {
                                 AboutUpdateDialog.Failed
                             }
                         }
                     }
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+                AboutGroupedAction(
+                    title = context.getString(R.string.about_licenses_title),
+                    supportingText = context.getString(R.string.about_licenses_explain),
+                    icon = Icons.Outlined.Gavel,
+                    onClick = { showLicensesDialog = true }
                 )
             }
         }
@@ -259,16 +273,6 @@ fun AboutPage(
                 }
             }
         )
-        is AboutUpdateDialog.UpToDate -> AlertDialog(
-            onDismissRequest = { updateDialog = null },
-            title = { Text(context.resources.getString(R.string.update_current_title)) },
-            text = { Text(context.getString(R.string.update_current_message, dialog.versionName)) },
-            confirmButton = {
-                TextButton(onClick = { updateDialog = null }) {
-                    Text(context.resources.getString(R.string.update_done))
-                }
-            }
-        )
         AboutUpdateDialog.Failed -> AlertDialog(
             onDismissRequest = { updateDialog = null },
             title = { Text(context.resources.getString(R.string.update_failed_title)) },
@@ -280,6 +284,27 @@ fun AboutPage(
             }
         )
         null -> Unit
+    }
+
+    if (showLicensesDialog) {
+        AlertDialog(
+            onDismissRequest = { showLicensesDialog = false },
+            title = { Text(context.getString(R.string.about_licenses_dialog_title)) },
+            text = { Text(context.getString(R.string.about_licenses_dialog_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    uriHandler.openUri(context.getString(R.string.url_ren_repository))
+                    showLicensesDialog = false
+                }) {
+                    Text(context.getString(R.string.about_licenses_project_action))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLicensesDialog = false }) {
+                    Text(context.getString(R.string.update_done))
+                }
+            }
+        )
     }
 }
 

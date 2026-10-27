@@ -57,6 +57,7 @@
 
     <!-- Tabs' names -->
     <string name="tracks">Canciones</string>
+    <string name="shuffle_all_tracks">Reproducir todas las canciones en orden aleatorio</string>
     <string name="albums">Álbumes</string>
     <string name="artists">Artistas</string>
     <string name="genres">Géneros</string>
@@ -244,17 +245,31 @@
     <string name="playback">Reproducción</string>
     <string name="playback_supporting_text">Enfoque de audio y ecualizador</string>
     <string name="about_app">Acerca de la aplicación</string>
-    <string name="about_description">Un reproductor de música local enfocado en la serenidad, la simplicidad y el diseño minimalista.</string>
+    <string name="about_description">Tu música, tu espacio, tu estilo. Un reproductor local diseñado para disfrutar y personalizar cada detalle.</string>
     <string name="about_attribution">Basado en el proyecto original Lotus de dn0ne.</string>
     <string name="about_open_source">Código abierto</string>
     <string name="about_credits_title">Créditos de código abierto</string>
     <string name="about_original_project_link">Ver el proyecto original</string>
     <string name="developer_name">Jair Sánchez</string>
-    <string name="developer_role">Creador y mantenedor (@jssanchez03)</string>
-    <string name="developer_github_url" translatable="false">https://github.com/jssanchez03</string>
-    <string name="developer_github_avatar_url" translatable="false">https://github.com/jssanchez03.png</string>
+    <string name="developer_role">Creador y mantenedor (@jairsan03)</string>
+    <string name="developer_github_url" translatable="false">https://github.com/jairsan03</string>
+    <string name="developer_github_avatar_url" translatable="false">https://github.com/jairsan03.png</string>
     <string name="open_developer_profile">Abrir el perfil del desarrollador</string>
     <string name="original_project_url" translatable="false">https://github.com/dn0ne/lotus</string>
+    <string name="about_donation_title">Apoya el desarrollo de Ren</string>
+    <string name="about_donation_explain">¿Te gusta Ren? Puedes contribuir a que el proyecto siga creciendo con una donación voluntaria.</string>
+    <string name="about_donation_action">Apoyar en Ko-fi</string>
+    <string name="about_licenses_title">Licencias de código abierto</string>
+    <string name="about_licenses_explain">Información sobre las licencias de Lotus y de bibliotecas de terceros.</string>
+    <string name="about_licenses_dialog_title">Licencias de código abierto</string>
+    <string name="about_licenses_dialog_body">Ren está basado en Lotus, distribuido bajo la Licencia Pública General GNU v3. Las bibliotecas de terceros se distribuyen bajo sus respectivas licencias. Consulta los textos y avisos de licencia en el repositorio del proyecto.</string>
+    <string name="about_licenses_project_action">Ver información de licencias</string>
+    <string name="url_developer_github" translatable="false">https://github.com/jairsan03</string>
+    <string name="url_github_issues" translatable="false">https://github.com/jairsan03/ren-music-player/issues/new</string>
+    <string name="url_donation_kofi" translatable="false">https://ko-fi.com/jairsan03</string>
+    <string name="url_original_lotus" translatable="false">https://github.com/dn0ne/lotus</string>
+    <string name="url_ren_repository" translatable="false">https://github.com/jairsan03/ren-music-player</string>
+    <string name="url_github_latest_release_api" translatable="false">https://api.github.com/repos/jairsan03/ren-music-player/releases/latest</string>
     <string name="about_explain">Versión, repositorio y comentarios</string>
     <string name="queue_settings">Cola de reproducción</string>
     <string name="queue_settings_explain">Resumen, indicador y botón para borrar la cola</string>
@@ -277,7 +292,7 @@
     <string name="queue_style_standard">Estándar (Línea plana)</string>
     <string name="queue_style_capsule_active">Cápsula activa</string>
     <string name="seek_bar_style">Estilo de la barra de progreso</string>
-    <string name="seek_bar_style_default_wave">Predeterminado</string>
+    <string name="seek_bar_style_default_wave">Línea clásica</string>
     <string name="seek_bar_style_traditional_line">Línea recta tradicional</string>
     <string name="seek_bar_style_subtle_wave">Onda sutil</string>
     <string name="seek_bar_style_multi_wave_samsung">Onda multinivel fluida</string>
@@ -435,7 +450,8 @@
 
     <!-- About screen -->
     <string name="feedback">Enviar comentarios</string>
-    <string name="feedback_explain">Escríbenos para sugerir una función o informar de un problema</string>
+    <string name="feedback_explain">¿Tienes una idea o encontraste un problema? Escríbeme para sugerir una función o informar de un error.</string>
+    <string name="update_success_toast">Ren ya está actualizado a la versión más reciente (%1$s).</string>
     <string name="check_updates">Buscar actualizaciones</string>
     <string name="check_updates_explain">Comprueba si hay una versión más reciente</string>
     <string name="checking_updates">Buscando actualizaciones</string>

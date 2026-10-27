@@ -116,10 +116,10 @@ class Settings(context: Context) {
     private val _queueStyle = MutableStateFlow(QueueStyle.STANDARD)
     val queueStyle = _queueStyle.asStateFlow()
 
-    private val _seekBarStyle = MutableStateFlow(SeekBarStyle.DEFAULT_WAVE)
+    private val _seekBarStyle = MutableStateFlow(SeekBarStyle.MULTI_WAVE_SAMSUNG)
     val seekBarStyle = _seekBarStyle.asStateFlow()
 
-    private val _playerCarouselPreview = MutableStateFlow(PlayerCarouselPreview.NONE)
+    private val _playerCarouselPreview = MutableStateFlow(PlayerCarouselPreview.BOTH_SIDES)
     val playerCarouselPreview = _playerCarouselPreview.asStateFlow()
 
     private val _carouselPreviewTint = MutableStateFlow(true)
@@ -160,10 +160,10 @@ class Settings(context: Context) {
                         ?: QueueStyle.STANDARD
                     _seekBarStyle.value = preferences[seekBarStyleKey]
                         ?.let { stored -> SeekBarStyle.entries.firstOrNull { it.name == stored } }
-                        ?: SeekBarStyle.DEFAULT_WAVE
+                        ?: SeekBarStyle.MULTI_WAVE_SAMSUNG
                     _playerCarouselPreview.value = preferences[playerCarouselPreviewKey]
                         ?.let { stored -> PlayerCarouselPreview.entries.firstOrNull { it.name == stored } }
-                        ?: PlayerCarouselPreview.NONE
+                        ?: PlayerCarouselPreview.BOTH_SIDES
                     _carouselPreviewTint.value = preferences[carouselPreviewTintKey] ?: true
                     _carouselPreviewBlur.value = preferences[carouselPreviewBlurKey] ?: false
                 }
@@ -532,8 +532,8 @@ class Settings(context: Context) {
 
     private val _playbackIndicatorStyle = MutableStateFlow(
         PlaybackIndicatorStyle.entries.getOrElse(
-            sharedPreferences.getInt(playbackIndicatorStyleKey, PlaybackIndicatorStyle.ClassicBars.ordinal)
-        ) { PlaybackIndicatorStyle.ClassicBars }
+            sharedPreferences.getInt(playbackIndicatorStyleKey, PlaybackIndicatorStyle.CenterBars.ordinal)
+        ) { PlaybackIndicatorStyle.CenterBars }
     )
     val playbackIndicatorStyle = _playbackIndicatorStyle.asStateFlow()
     fun updatePlaybackIndicatorStyle(value: PlaybackIndicatorStyle) {

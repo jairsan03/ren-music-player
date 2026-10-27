@@ -98,6 +98,16 @@ android {
         includeInApk = false
         includeInBundle = false
     }
+
+    packaging {
+        jniLibs {
+            keepDebugSymbols += setOf(
+                "**/libandroidx.graphics.path.so",
+                "**/libdatastore_shared_counter.so",
+                "**/librealmc.so"
+            )
+        }
+    }
 }
 
 tasks.withType<com.android.build.gradle.internal.tasks.CompileArtProfileTask> {

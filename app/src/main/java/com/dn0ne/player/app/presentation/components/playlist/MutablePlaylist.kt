@@ -82,7 +82,7 @@ fun MutablePlaylist(
     currentTrack: Track?,
     isPlaying: Boolean = false,
     showPlaybackIndicator: Boolean = true,
-    playbackIndicatorStyle: PlaybackIndicatorStyle = PlaybackIndicatorStyle.ClassicBars,
+    playbackIndicatorStyle: PlaybackIndicatorStyle = PlaybackIndicatorStyle.CenterBars,
     queuedTracks: List<Track> = emptyList(),
     nextTrack: Track? = null,
     onRemoveFromQueueClick: (Track) -> Unit = {},

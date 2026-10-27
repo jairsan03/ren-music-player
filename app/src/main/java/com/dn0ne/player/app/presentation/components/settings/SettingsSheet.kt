@@ -19,8 +19,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.QueueMusic
 import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
-import androidx.compose.material.icons.outlined.QueueMusic
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.ColorLens
 import androidx.compose.material.icons.rounded.Info
@@ -209,7 +209,7 @@ fun SettingsSheet(
                                 SettingsItem(
                                     title = context.resources.getString(R.string.queue_settings),
                                     supportingText = context.resources.getString(R.string.queue_settings_explain),
-                                    icon = Icons.Outlined.QueueMusic,
+                                    icon = Icons.AutoMirrored.Outlined.QueueMusic,
                                     onClick = {
                                         navController.navigate(SettingsRoutes.Queue)
                                     }

@@ -17,12 +17,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ShowChart
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Equalizer
 import androidx.compose.material.icons.rounded.FilterCenterFocus
 import androidx.compose.material.icons.rounded.Circle
 import androidx.compose.material.icons.rounded.SkipPrevious
-import androidx.compose.material.icons.rounded.ShowChart
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -209,7 +209,7 @@ fun PlaybackSettings(
                         SettingsItem(
                             title = context.getString(R.string.carousel_preview),
                             supportingText = context.getString(carouselPreview.labelResource()),
-                            icon = Icons.Rounded.ShowChart,
+                            icon = Icons.AutoMirrored.Rounded.ShowChart,
                             onClick = { showCarouselPreviewDialog = true }
                         )
                     ),
