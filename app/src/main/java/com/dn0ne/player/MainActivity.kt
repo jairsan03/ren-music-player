@@ -52,6 +52,7 @@ import com.dn0ne.player.core.presentation.Routes
 import com.dn0ne.player.setup.data.SetupState
 import com.dn0ne.player.setup.presentation.SetupScreen
 import com.dn0ne.player.setup.presentation.SetupViewModel
+import com.dn0ne.player.ui.theme.AppFont
 import com.dn0ne.player.ui.theme.MusicPlayerTheme
 import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.channels.Channel
@@ -200,7 +201,9 @@ class MainActivity : ComponentActivity() {
         } else Routes.Setup
 
         setContent {
-            MusicPlayerTheme {
+            MusicPlayerTheme(
+                fontFamily = AppFont.Manrope.fontFamily
+            ) {
                 ScaffoldWithSnackbarEvents(modifier = Modifier.fillMaxSize()) {
 
                     val navController = rememberNavController()
@@ -287,10 +290,12 @@ class MainActivity : ComponentActivity() {
 
                             val useDynamicColor by viewModel.settings.useDynamicColor.collectAsState()
                             val paletteStyle by viewModel.settings.paletteStyle.collectAsState()
+                            val selectedFont by viewModel.settings.selectedFontFamily.collectAsState()
                             MusicPlayerTheme(
                                 darkTheme = isDarkTheme,
                                 dynamicColor = useDynamicColor,
-                                useRenPalette = paletteStyle == Theme.PaletteStyle.Ren
+                                useRenPalette = paletteStyle == Theme.PaletteStyle.Ren,
+                                fontFamily = selectedFont.fontFamily
                             ) {
                                 PlayerScreen(
                                     viewModel = viewModel,

@@ -29,7 +29,7 @@ fun SetupPageHeader(
     ) {
         Box(
             modifier = Modifier
-                .size(150.dp)
+                .size(160.dp)
                 .clip(CircleShape)
                 .background(color = MaterialTheme.colorScheme.secondary),
             contentAlignment = Alignment.Center

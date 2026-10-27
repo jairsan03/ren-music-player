@@ -10,6 +10,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
@@ -122,8 +123,8 @@ val renDarkColorScheme = darkColorScheme(
     onPrimaryContainer = Color(0xFFF0D4D9),
     secondary = renSecondary,
     onSecondary = Color(0xFF302B39),
-    secondaryContainer = Color(0xFF494354),
-    onSecondaryContainer = Color(0xFFE3DDEC),
+    secondaryContainer = Color(0xFF60414A),
+    onSecondaryContainer = Color(0xFFF0D4D9),
     tertiary = renTertiary,
     onTertiary = Color(0xFF3E2119),
     tertiaryContainer = Color(0xFF65463D),
@@ -146,11 +147,12 @@ val renDarkColorScheme = darkColorScheme(
 @Composable
 fun RenMaterialTheme(
     darkTheme: Boolean,
+    fontFamily: FontFamily = AppFont.Manrope.fontFamily,
     content: @Composable () -> Unit
 ) {
     MaterialTheme(
         colorScheme = if (darkTheme) renDarkColorScheme else renLightColorScheme,
-        typography = Typography,
+        typography = buildTypography(fontFamily),
         content = content
     )
 }
@@ -161,6 +163,7 @@ fun MusicPlayerTheme(
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     useRenPalette: Boolean = false,
+    fontFamily: FontFamily = AppFont.Manrope.fontFamily,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -176,7 +179,7 @@ fun MusicPlayerTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = buildTypography(fontFamily),
         content = content
     )
 }

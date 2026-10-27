@@ -112,7 +112,6 @@ import com.dn0ne.player.app.presentation.components.trackList
 import com.dn0ne.player.app.presentation.components.trackinfo.SearchField
 import com.dn0ne.player.app.presentation.components.trackinfo.TrackInfoSheet
 import com.dn0ne.player.core.data.PlaybackIndicatorStyle
-import com.dn0ne.player.ui.theme.Typography
 import com.dn0ne.player.ui.theme.renDarkColorScheme
 import com.dn0ne.player.ui.theme.renLightColorScheme
 import com.dn0ne.player.ui.theme.renPrimary
@@ -199,22 +198,34 @@ fun PlayerScreen(
         animationSpec = tween(300, 200),
         animate = true
     ) {
-        val activeColorScheme = if (paletteStyle == Theme.PaletteStyle.Ren) {
-            val renScheme = if (isDarkAppearance) renDarkColorScheme else renLightColorScheme
-            if (useAlbumArtColor && coverArtBitmap != null) {
-                renScheme.copy(
-                    primary = colorToApply,
-                    onPrimary = if (colorToApply.luminance() > 0.5f) {
-                        Color(0xFF27212A)
-                    } else {
-                        Color(0xFFF5F0E8)
-                    }
-                )
+        val renScheme = if (isDarkAppearance) renDarkColorScheme else renLightColorScheme
+        val artworkColorEnabled = useAlbumArtColor && coverArtBitmap != null
+        val baseColorScheme = if (artworkColorEnabled || paletteStyle != Theme.PaletteStyle.Ren) {
+            MaterialTheme.colorScheme
+        } else {
+            renScheme
+        }
+        val activeColorScheme = if (artworkColorEnabled) {
+            val isDarkBackground = baseColorScheme.background.luminance() < 0.5f
+            val readableForeground = if (isDarkBackground) {
+                Color(0xFFF5F0E8)
             } else {
-                renScheme.copy(primary = renPrimary)
+                Color(0xFF27212A)
             }
-        } else MaterialTheme.colorScheme
-        MaterialTheme(colorScheme = activeColorScheme, typography = Typography) {
+            val readablePrimary = if (isDarkBackground) renPrimary else Color(0xFF27212A)
+            baseColorScheme.copy(
+                primary = readablePrimary,
+                onPrimary = if (isDarkBackground) Color(0xFF27212A) else Color(0xFFF5F0E8),
+                onBackground = readableForeground,
+                onSurface = readableForeground,
+                onSurfaceVariant = readableForeground
+            )
+        } else if (paletteStyle == Theme.PaletteStyle.Ren) {
+            renScheme.copy(primary = renPrimary)
+        } else {
+            baseColorScheme
+        }
+        MaterialTheme(colorScheme = activeColorScheme) {
         val rippleColor = MaterialTheme.colorScheme.primaryContainer
         val ripple = remember(rippleColor) {
             ripple(color = rippleColor)

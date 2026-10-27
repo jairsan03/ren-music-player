@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.snapshotFlow
@@ -127,7 +128,7 @@ fun PlayerCarousel(
             val pageProgress = pagerState.getOffsetDistanceInPages(page).absoluteValue.coerceIn(0f, 1f)
             val isAdjacent = pageProgress > 0.01f
             val canBlur = blurPreviews && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-            val coverShape = RoundedCornerShape(24.dp)
+            val coverShape = RoundedCornerShape(20.dp)
             val blurModifier = if (isAdjacent && canBlur) {
                 Modifier
                     .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
@@ -172,6 +173,7 @@ fun PlayerCarousel(
                         .graphicsLayer {
                             scaleX = pageScale
                             scaleY = pageScale
+                            transformOrigin = TransformOrigin.Center
                             alpha = pageAlpha
                         }
                         .clip(coverShape)

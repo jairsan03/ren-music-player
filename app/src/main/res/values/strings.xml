@@ -313,13 +313,13 @@
     <string name="appearance_dark">Dark</string>
 
     <string name="palette_style">Palette style</string>
-    <string name="palette_tonal_spot">Tonal Spot</string>
+    <string name="palette_tonal_spot">Tonal</string>
     <string name="palette_neutral">Neutral</string>
     <string name="palette_vibrant">Vibrant</string>
     <string name="palette_expressive">Expressive</string>
     <string name="palette_rainbow">Rainbow</string>
-    <string name="palette_fruit_salad">Fruit Salad</string>
-    <string name="palette_monochrome">Monochrome</string>
+    <string name="palette_fruit_salad">Fruity</string>
+    <string name="palette_monochrome">Gray</string>
     <string name="palette_fidelity">Fidelity</string>
     <string name="palette_content">Content</string>
     <string name="palette_ren">Ren</string>
@@ -334,6 +334,8 @@
     <!-- Playback settings -->
     <string name="audio_focus">Audio focus</string>
     <string name="audio_focus_explain">Pause playback when another app needs to play audio</string>
+    <string name="show_audio_info">Show audio info</string>
+    <string name="show_audio_info_explain">Show sample rate, bit rate, and codec in the player.</string>
     <string name="changes_will_take_effect_on_next_launch">Changes will take effect on next launch.</string>
     <string name="equalizer">Equalizer</string>
     <string name="equalizer_explain">Manually adjust sound</string>
@@ -447,6 +449,19 @@
     <string name="mini_player_style_floating_capsule_explain">Floating with fully rounded capsule ends</string>
     <string name="done">Done</string>
     <string name="now_playing">Now playing</string>
+
+    <!-- Typography settings -->
+    <string name="typography_app_title">App typography</string>
+    <string name="typography_font_manrope">Minimalist</string>
+    <string name="typography_font_dm_sans">Soft and balanced</string>
+    <string name="typography_font_plus_jakarta">Modern and refined</string>
+    <string name="typography_font_nunito">Rounded and welcoming</string>
+    <string name="typography_font_outfit">Geometric and stylized</string>
+    <string name="typography_font_inter">Neutral and functional</string>
+    <string name="typography_font_space_grotesk">Technological and distinctive</string>
+    <string name="typography_font_figtree">Clean and friendly</string>
+    <string name="typography_font_lora">Editorial serif</string>
+    <string name="typography_font_instrument_serif">Sophisticated serif</string>
 
     <!-- About screen -->
     <string name="feedback">Feedback</string>

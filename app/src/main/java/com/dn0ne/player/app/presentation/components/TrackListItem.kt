@@ -58,7 +58,7 @@ fun TrackListItem(
                 onClick()
             }
             .background(
-                color = if (isCurrent) MaterialTheme.colorScheme.surfaceContainerLow else Color.Transparent
+                color = if (isCurrent) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent
             )
             .padding(vertical = 8.dp)
             .padding(start = 8.dp, end = if (dragHandle != null) 8.dp else 0.dp),

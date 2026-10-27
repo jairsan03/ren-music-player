@@ -1,5 +1,8 @@
 package com.dn0ne.player.app.presentation.components.playback
 
+import android.content.Context
+import android.media.MediaExtractor
+import android.media.MediaFormat
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -67,11 +70,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ShapeDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -106,7 +111,10 @@ import com.dn0ne.player.core.data.ProgressStyle
 import com.dn0ne.player.core.data.SeekBarStyle
 import com.dn0ne.player.core.data.Settings
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.Locale
 import kotlin.math.absoluteValue
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -657,6 +665,7 @@ fun ExpandedPlayer(
     val carouselPreviewBlur by settings.carouselPreviewBlur.collectAsState()
     val queueHandlePosition by settings.queueHandlePosition.collectAsState()
     val queueStyle by settings.queueStyle.collectAsState()
+    val showAudioInfo by settings.showAudioInfo.collectAsState()
     val showLyricsSheet by remember {
         derivedStateOf {
             playbackState.isLyricsSheetExpanded
@@ -845,6 +854,7 @@ fun ExpandedPlayer(
                         onSeekToNextClick = onSeekToNextClick,
                         onSeekToPreviousClick = onSeekToPreviousClick,
                         seekBarStyle = seekBarStyle,
+                        showAudioInfo = showAudioInfo,
                         modifier = Modifier
                             .fillMaxWidth()
                     )
@@ -1023,6 +1033,7 @@ fun ExpandedPlayer(
                                 onSeekToNextClick = onSeekToNextClick,
                                 onSeekToPreviousClick = onSeekToPreviousClick,
                                 seekBarStyle = seekBarStyle,
+                                showAudioInfo = showAudioInfo,
                                 modifier = Modifier
                                     .fillMaxWidth()
                             )
@@ -1114,6 +1125,7 @@ fun PlaybackControl(
     onSeekToNextClick: () -> Unit,
     onSeekToPreviousClick: () -> Unit,
     seekBarStyle: SeekBarStyle = SeekBarStyle.MULTI_WAVE_SAMSUNG,
+    showAudioInfo: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -1136,6 +1148,17 @@ fun PlaybackControl(
                 playbackState.isPlaying
             }
         }
+        val context = LocalContext.current
+        var audioTechnicalInfo by remember(currentTrack.uri) {
+            mutableStateOf<AudioTechnicalInfo?>(null)
+        }
+        LaunchedEffect(currentTrack.uri, showAudioInfo) {
+            audioTechnicalInfo = if (showAudioInfo) {
+                readAudioTechnicalInfo(context, currentTrack)
+            } else {
+                null
+            }
+        }
 
         WavingSeekBar(
             position = position,
@@ -1148,7 +1171,24 @@ fun PlaybackControl(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        if (showAudioInfo) {
+            audioTechnicalInfo?.displayLabel()?.let { label ->
+                Surface(
+                    modifier = Modifier.padding(top = 8.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh
+                ) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(if (showAudioInfo) 12.dp else 16.dp))
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -1220,4 +1260,73 @@ fun PlaybackControl(
             }
         }
     }
+}
+
+private data class AudioTechnicalInfo(
+    val sampleRateHz: Int?,
+    val bitRateKbps: Int?,
+    val codec: String?
+) {
+    fun displayLabel(): String? = buildList {
+        sampleRateHz?.takeIf { it > 0 }?.let {
+            add(String.format(Locale.ROOT, "%.1f kHz", it / 1000.0))
+        }
+        bitRateKbps?.takeIf { it > 0 }?.let { add("$it kbps") }
+        codec?.takeIf(String::isNotBlank)?.let(::add)
+    }.takeIf(List<String>::isNotEmpty)?.joinToString(" • ")
+}
+
+private suspend fun readAudioTechnicalInfo(
+    context: Context,
+    track: Track
+): AudioTechnicalInfo = withContext(Dispatchers.IO) {
+    var sampleRateHz: Int? = null
+    var bitRate: Int? = null
+    var audioMimeType: String? = null
+    val extractor = MediaExtractor()
+
+    try {
+        extractor.setDataSource(context, track.uri, null)
+        for (index in 0 until extractor.trackCount) {
+            val format = extractor.getTrackFormat(index)
+            val mimeType = format.getString(MediaFormat.KEY_MIME)
+            if (mimeType?.startsWith("audio/") == true) {
+                audioMimeType = mimeType
+                sampleRateHz = format.intValueOrNull(MediaFormat.KEY_SAMPLE_RATE)
+                bitRate = format.intValueOrNull(MediaFormat.KEY_BIT_RATE)
+                break
+            }
+        }
+    } catch (_: Exception) {
+        // Use the indexed bitrate and file extension when the platform extractor cannot read this source.
+    } finally {
+        runCatching { extractor.release() }
+    }
+
+    val fallbackBitRate = track.bitrate?.toIntOrNull()
+    AudioTechnicalInfo(
+        sampleRateHz = sampleRateHz,
+        bitRateKbps = bitRate?.takeIf { it > 0 }?.let { if (it >= 10_000) it / 1000 else it }
+            ?: fallbackBitRate?.takeIf { it > 0 },
+        codec = audioMimeType.toAudioCodecLabel() ?: track.data
+            .substringAfterLast('.', "")
+            .takeIf { it.length in 2..6 }
+            ?.uppercase(Locale.ROOT)
+    )
+}
+
+private fun MediaFormat.intValueOrNull(key: String): Int? =
+    runCatching { getInteger(key) }.getOrNull()
+
+private fun String?.toAudioCodecLabel(): String? = when (this?.lowercase(Locale.ROOT)) {
+    "audio/mpeg" -> "MP3"
+    "audio/mp4a-latm", "audio/aac" -> "AAC"
+    "audio/vorbis", "audio/ogg" -> "OGG"
+    "audio/opus" -> "OPUS"
+    "audio/flac" -> "FLAC"
+    "audio/ac3" -> "AC3"
+    "audio/eac3" -> "EAC3"
+    "audio/raw" -> "PCM"
+    null -> null
+    else -> substringAfter('/').substringBefore(';').uppercase(Locale.ROOT)
 }

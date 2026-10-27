@@ -232,14 +232,14 @@
     <string name="appearance_dark">Темне</string>
 
     <string name="palette_style">Стиль палітри</string>
-    <string name="palette_tonal_spot">Тональна пляма</string>
+    <string name="palette_tonal_spot">Тональна</string>
     <string name="palette_neutral">Нейтральна</string>
     <string name="palette_vibrant">Яскрава</string>
     <string name="palette_expressive">Виразна</string>
-    <string name="palette_rainbow">Веселкова</string>
-    <string name="palette_fruit_salad">Фруктовий салат</string>
-    <string name="palette_monochrome">Монохромна</string>
-    <string name="palette_fidelity">Вірність</string>
+    <string name="palette_rainbow">Веселка</string>
+    <string name="palette_fruit_salad">Фруктова</string>
+    <string name="palette_monochrome">Сіра</string>
+    <string name="palette_fidelity">Точна</string>
     <string name="palette_content">Вміст</string>
 
     <string name="black_theme">Чорна тема</string>
@@ -252,6 +252,8 @@
     <!-- Playback settings -->
     <string name="audio_focus">Фокус аудіо</string>
     <string name="audio_focus_explain">Призупинити відтворення, коли іншому додатку потрібно відтворити аудіо</string>
+    <string name="show_audio_info">Показувати дані аудіо</string>
+    <string name="show_audio_info_explain">Показувати частоту дискретизації, бітрейт і кодек у плеєрі.</string>
     <string name="changes_will_take_effect_on_next_launch">Зміни набудуть чинності з наступного запуску.</string>
     <string name="equalizer">Еквалайзер</string>
     <string name="equalizer_explain">Ручне регулювання звуку</string>

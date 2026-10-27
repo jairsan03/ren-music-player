@@ -6,12 +6,13 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -19,19 +20,17 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.dn0ne.player.R
 import com.dn0ne.player.core.util.getAppVersionName
@@ -66,7 +65,7 @@ fun AppDetails(
                 Image(
                     bitmap = ImageBitmap.imageResource(logo),
                     contentDescription = context.getString(R.string.app_name),
-                    modifier = Modifier.size(210.dp),
+                    modifier = Modifier.size(230.dp),
                     contentScale = ContentScale.Fit,
                     filterQuality = FilterQuality.High
                 )
@@ -77,33 +76,37 @@ fun AppDetails(
         return
     }
 
+    // ── Tarjeta principal de presentación: diseño limpio, sin offsets ni clips ──
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 22.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .padding(top = 4.dp)
-                    .size(width = 220.dp, height = 172.dp)
-                    .clipToBounds(),
-                contentAlignment = Alignment.TopCenter
+            // 1. Logo completo, sin recortes
+            Image(
+                bitmap = ImageBitmap.imageResource(logo),
+                contentDescription = context.getString(R.string.app_name),
+                modifier = Modifier.size(160.dp),
+                contentScale = ContentScale.Fit,
+                filterQuality = FilterQuality.High
+            )
+
+            // 2. Fila de insignias (versión + código abierto)
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
-                    bitmap = ImageBitmap.imageResource(logo),
-                    contentDescription = context.getString(R.string.app_name),
-                    modifier = Modifier.size(220.dp),
-                    contentScale = ContentScale.Fit,
-                    filterQuality = FilterQuality.High
-                )
-            }
-            Spacer(modifier = Modifier.height(1.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.secondaryContainer) {
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = MaterialTheme.colorScheme.secondaryContainer
+                ) {
                     Text(
                         text = "v${context.getAppVersionName()}",
                         style = MaterialTheme.typography.labelLarge,
@@ -112,7 +115,10 @@ fun AppDetails(
                     )
                 }
                 if (showOpenSourceBadge) {
-                    Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.tertiaryContainer) {
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = MaterialTheme.colorScheme.tertiaryContainer
+                    ) {
                         Text(
                             text = context.getString(R.string.about_open_source),
                             style = MaterialTheme.typography.labelLarge,
@@ -122,13 +128,14 @@ fun AppDetails(
                     }
                 }
             }
+
+            // 3. Eslogan descriptivo
             if (description != null) {
-                Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    textAlign = TextAlign.Center
                 )
             }
         }

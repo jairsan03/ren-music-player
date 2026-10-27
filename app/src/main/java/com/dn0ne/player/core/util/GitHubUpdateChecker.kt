@@ -1,8 +1,6 @@
 package com.dn0ne.player.core.util
 
 import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
 import com.dn0ne.player.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -34,7 +32,7 @@ object GitHubUpdateChecker {
         }
 
         try {
-            val installedVersion = context.getInstalledVersionName()
+            val installedVersion = context.getAppVersionName()
             if (connection.responseCode == HttpURLConnection.HTTP_NOT_FOUND) {
                 return@withContext UpdateCheckResult.UpToDate(installedVersion.displayVersion())
             }
@@ -71,16 +69,6 @@ object GitHubUpdateChecker {
         } finally {
             connection.disconnect()
         }
-    }
-
-    @Suppress("DEPRECATION")
-    private fun Context.getInstalledVersionName(): String {
-        val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0))
-        } else {
-            packageManager.getPackageInfo(packageName, 0)
-        }
-        return packageInfo.versionName.orEmpty()
     }
 
     private fun compareVersions(remote: String, installed: String): Int {

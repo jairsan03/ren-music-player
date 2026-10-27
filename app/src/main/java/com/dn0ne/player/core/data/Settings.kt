@@ -12,6 +12,7 @@ import com.dn0ne.player.app.domain.sort.PlaylistSort
 import com.dn0ne.player.app.domain.sort.SortOrder
 import com.dn0ne.player.app.domain.sort.TrackSort
 import com.dn0ne.player.app.presentation.components.settings.Theme
+import com.dn0ne.player.ui.theme.AppFont
 import com.dn0ne.player.app.presentation.components.topbar.Tab
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -342,6 +343,7 @@ class Settings(context: Context) {
     private val appearanceKey = "appearance"
     private val useDynamicColorKey = "use-dynamic-color"
     private val useAlbumArtColorKey = "use-album-art-color"
+    private val showAudioInfoKey = "show-audio-info"
     private val paletteStyleKey = "palette-style"
     private val paletteStyleOrderMigratedKey = "palette-style-ren-order-migrated"
     private val amoledDarkThemeKey = "amoled-dark-theme"
@@ -379,6 +381,7 @@ class Settings(context: Context) {
     private val jumpToBeginningKey = "jump-to-beginning"
 
     private val gridPlaylistsKey = "grid-playlists"
+    private val selectedFontFamilyKey = "selected-font-family"
 
     var handleAudioFocus: Boolean
         get() = sharedPreferences.getBoolean(handleAudioFocusKey, true)
@@ -416,7 +419,7 @@ class Settings(context: Context) {
     }
 
     private val _useDynamicColor = MutableStateFlow(
-        sharedPreferences.getBoolean(useDynamicColorKey, true)
+        sharedPreferences.getBoolean(useDynamicColorKey, false)
     )
     val useDynamicColor = _useDynamicColor.asStateFlow()
     fun updateUseDynamicColor(value: Boolean) {
@@ -435,6 +438,18 @@ class Settings(context: Context) {
         _useAlbumArtColor.update { value }
         with(sharedPreferences.edit()) {
             putBoolean(useAlbumArtColorKey, value)
+            apply()
+        }
+    }
+
+    private val _showAudioInfo = MutableStateFlow(
+        sharedPreferences.getBoolean(showAudioInfoKey, false)
+    )
+    val showAudioInfo = _showAudioInfo.asStateFlow()
+    fun updateShowAudioInfo(value: Boolean) {
+        _showAudioInfo.update { value }
+        with(sharedPreferences.edit()) {
+            putBoolean(showAudioInfoKey, value)
             apply()
         }
     }
@@ -776,6 +791,18 @@ class Settings(context: Context) {
                 apply()
             }
         }
+
+    private val _selectedFontFamily = MutableStateFlow(
+        AppFont.fromName(sharedPreferences.getString(selectedFontFamilyKey, null) ?: AppFont.Manrope.name)
+    )
+    val selectedFontFamily = _selectedFontFamily.asStateFlow()
+    fun updateSelectedFontFamily(value: AppFont) {
+        _selectedFontFamily.update { value }
+        with(sharedPreferences.edit()) {
+            putString(selectedFontFamilyKey, value.name)
+            apply()
+        }
+    }
 
     private val _gridPlaylist = MutableStateFlow(
         sharedPreferences.getBoolean(gridPlaylistsKey, true)

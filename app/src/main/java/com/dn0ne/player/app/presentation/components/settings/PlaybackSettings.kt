@@ -154,6 +154,15 @@ fun PlaybackSettings(
             }
         )
 
+        val showAudioInfo by settings.showAudioInfo.collectAsState()
+        SettingSwitch(
+            title = context.getString(R.string.show_audio_info),
+            supportingText = context.getString(R.string.show_audio_info_explain),
+            icon = Icons.Rounded.Equalizer,
+            isChecked = showAudioInfo,
+            onCheckedChange = settings::updateShowAudioInfo
+        )
+
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.large,

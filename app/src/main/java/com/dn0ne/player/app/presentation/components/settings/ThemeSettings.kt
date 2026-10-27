@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -48,6 +50,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.util.fastForEach
@@ -56,8 +59,9 @@ import com.dn0ne.player.app.presentation.components.settings.Theme.Appearance
 import com.dn0ne.player.app.presentation.components.settings.Theme.PaletteStyle
 import com.dn0ne.player.app.presentation.components.topbar.ColumnWithCollapsibleTopBar
 import com.dn0ne.player.core.data.Settings
-import com.dn0ne.player.ui.theme.renLightBackground
+import com.dn0ne.player.ui.theme.AppFont
 import com.dn0ne.player.ui.theme.renDarkBackground
+import com.dn0ne.player.ui.theme.renLightBackground
 import com.dn0ne.player.ui.theme.renPrimary
 import com.dn0ne.player.ui.theme.renSecondary
 import com.dn0ne.player.ui.theme.renTertiary
@@ -72,9 +76,7 @@ fun ThemeSettings(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    var collapseFraction by remember {
-        mutableFloatStateOf(0f)
-    }
+    var collapseFraction by remember { mutableFloatStateOf(0f) }
 
     ColumnWithCollapsibleTopBar(
         topBarContent = {
@@ -89,7 +91,6 @@ fun ThemeSettings(
                     contentDescription = context.resources.getString(R.string.back)
                 )
             }
-
             Text(
                 text = context.resources.getString(R.string.theme),
                 fontSize = lerp(
@@ -103,15 +104,11 @@ fun ThemeSettings(
                     .padding(horizontal = 16.dp)
             )
         },
-        collapseFraction = {
-            collapseFraction = it
-        },
+        collapseFraction = { collapseFraction = it },
         contentPadding = PaddingValues(horizontal = 28.dp),
         contentHorizontalAlignment = Alignment.CenterHorizontally,
         contentVerticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = modifier
-            .fillMaxSize()
-            .safeDrawingPadding()
+        modifier = modifier.fillMaxSize().safeDrawingPadding()
     ) {
         val isDarkTheme = isSystemInDarkTheme()
         val selectedAppearance by settings.appearance.collectAsState()
@@ -119,9 +116,7 @@ fun ThemeSettings(
             listOf(
                 AppearanceOption(
                     title = context.resources.getString(R.string.appearance_system),
-                    onSelection = {
-                        settings.updateAppearance(Appearance.System)
-                    },
+                    onSelection = { settings.updateAppearance(Appearance.System) },
                     appearance = Appearance.System,
                     icon = Icons.Rounded.PhonelinkSetup,
                     containerColor = if (isDarkTheme) Color.Black else Color.White,
@@ -129,9 +124,7 @@ fun ThemeSettings(
                 ),
                 AppearanceOption(
                     title = context.resources.getString(R.string.appearance_light),
-                    onSelection = {
-                        settings.updateAppearance(Appearance.Light)
-                    },
+                    onSelection = { settings.updateAppearance(Appearance.Light) },
                     appearance = Appearance.Light,
                     icon = Icons.Rounded.LightMode,
                     containerColor = Color.White,
@@ -139,9 +132,7 @@ fun ThemeSettings(
                 ),
                 AppearanceOption(
                     title = context.resources.getString(R.string.appearance_dark),
-                    onSelection = {
-                        settings.updateAppearance(Appearance.Dark)
-                    },
+                    onSelection = { settings.updateAppearance(Appearance.Dark) },
                     appearance = Appearance.Dark,
                     icon = Icons.Rounded.DarkMode,
                     containerColor = Color.Black,
@@ -158,17 +149,11 @@ fun ThemeSettings(
             Column(
                 modifier = Modifier
                     .clip(ShapeDefaults.Large)
-                    .clickable {
-                        option.onSelection()
-                    }
+                    .clickable { option.onSelection() }
                     .padding(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val isSelected by remember {
-                    derivedStateOf {
-                        selectedAppearance == option.appearance
-                    }
-                }
+                val isSelected by remember { derivedStateOf { selectedAppearance == option.appearance } }
                 Box(
                     modifier = Modifier
                         .size(60.dp)
@@ -190,15 +175,12 @@ fun ThemeSettings(
                         tint = option.contentColor
                     )
                 }
-
                 Spacer(modifier = Modifier.height(8.dp))
-
                 Text(
                     text = option.title,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (isSelected) {
-                        MaterialTheme.colorScheme.primary
-                    } else MaterialTheme.colorScheme.onSurface
+                    color = if (isSelected) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -206,76 +188,36 @@ fun ThemeSettings(
         val selectedPalette by settings.paletteStyle.collectAsState()
         val paletteOptions = remember {
             listOf(
-                PaletteOption(
-                    title = context.resources.getString(R.string.palette_ren),
-                    onSelection = {
-                        settings.updatePaletteStyle(PaletteStyle.Ren)
-                    },
-                    style = PaletteStyle.Ren
-                ),
-                PaletteOption(
-                    title = context.resources.getString(R.string.palette_tonal_spot),
-                    onSelection = {
-                        settings.updatePaletteStyle(PaletteStyle.TonalSpot)
-                    },
-                    style = PaletteStyle.TonalSpot
-                ),
-                PaletteOption(
-                    title = context.resources.getString(R.string.palette_neutral),
-                    onSelection = {
-                        settings.updatePaletteStyle(PaletteStyle.Neutral)
-                    },
-                    style = PaletteStyle.Neutral
-                ),
-                PaletteOption(
-                    title = context.resources.getString(R.string.palette_vibrant),
-                    onSelection = {
-                        settings.updatePaletteStyle(PaletteStyle.Vibrant)
-                    },
-                    style = PaletteStyle.Vibrant
-                ),
-                PaletteOption(
-                    title = context.resources.getString(R.string.palette_expressive),
-                    onSelection = {
-                        settings.updatePaletteStyle(PaletteStyle.Expressive)
-                    },
-                    style = PaletteStyle.Expressive
-                ),
-                PaletteOption(
-                    title = context.resources.getString(R.string.palette_rainbow),
-                    onSelection = {
-                        settings.updatePaletteStyle(PaletteStyle.Rainbow)
-                    },
-                    style = PaletteStyle.Rainbow
-                ),
-                PaletteOption(
-                    title = context.resources.getString(R.string.palette_fruit_salad),
-                    onSelection = {
-                        settings.updatePaletteStyle(PaletteStyle.FruitSalad)
-                    },
-                    style = PaletteStyle.FruitSalad
-                ),
-                PaletteOption(
-                    title = context.resources.getString(R.string.palette_monochrome),
-                    onSelection = {
-                        settings.updatePaletteStyle(PaletteStyle.Monochrome)
-                    },
-                    style = PaletteStyle.Monochrome
-                ),
-                PaletteOption(
-                    title = context.resources.getString(R.string.palette_fidelity),
-                    onSelection = {
-                        settings.updatePaletteStyle(PaletteStyle.Fidelity)
-                    },
-                    style = PaletteStyle.Fidelity
-                ),
-                PaletteOption(
-                    title = context.resources.getString(R.string.palette_content),
-                    onSelection = {
-                        settings.updatePaletteStyle(PaletteStyle.Content)
-                    },
-                    style = PaletteStyle.Content
-                )
+                PaletteOption(title = context.resources.getString(R.string.palette_ren),
+                    onSelection = { settings.updatePaletteStyle(PaletteStyle.Ren) },
+                    style = PaletteStyle.Ren),
+                PaletteOption(title = context.resources.getString(R.string.palette_tonal_spot),
+                    onSelection = { settings.updatePaletteStyle(PaletteStyle.TonalSpot) },
+                    style = PaletteStyle.TonalSpot),
+                PaletteOption(title = context.resources.getString(R.string.palette_neutral),
+                    onSelection = { settings.updatePaletteStyle(PaletteStyle.Neutral) },
+                    style = PaletteStyle.Neutral),
+                PaletteOption(title = context.resources.getString(R.string.palette_vibrant),
+                    onSelection = { settings.updatePaletteStyle(PaletteStyle.Vibrant) },
+                    style = PaletteStyle.Vibrant),
+                PaletteOption(title = context.resources.getString(R.string.palette_expressive),
+                    onSelection = { settings.updatePaletteStyle(PaletteStyle.Expressive) },
+                    style = PaletteStyle.Expressive),
+                PaletteOption(title = context.resources.getString(R.string.palette_rainbow),
+                    onSelection = { settings.updatePaletteStyle(PaletteStyle.Rainbow) },
+                    style = PaletteStyle.Rainbow),
+                PaletteOption(title = context.resources.getString(R.string.palette_fruit_salad),
+                    onSelection = { settings.updatePaletteStyle(PaletteStyle.FruitSalad) },
+                    style = PaletteStyle.FruitSalad),
+                PaletteOption(title = context.resources.getString(R.string.palette_monochrome),
+                    onSelection = { settings.updatePaletteStyle(PaletteStyle.Monochrome) },
+                    style = PaletteStyle.Monochrome),
+                PaletteOption(title = context.resources.getString(R.string.palette_fidelity),
+                    onSelection = { settings.updatePaletteStyle(PaletteStyle.Fidelity) },
+                    style = PaletteStyle.Fidelity),
+                PaletteOption(title = context.resources.getString(R.string.palette_content),
+                    onSelection = { settings.updatePaletteStyle(PaletteStyle.Content) },
+                    style = PaletteStyle.Content),
             )
         }
 
@@ -287,17 +229,12 @@ fun ThemeSettings(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
+                    .width(88.dp)
                     .clip(ShapeDefaults.Large)
-                    .clickable {
-                        option.onSelection()
-                    }
+                    .clickable { option.onSelection() }
                     .padding(8.dp)
             ) {
-                val isSelected by remember {
-                    derivedStateOf {
-                        selectedPalette == option.style
-                    }
-                }
+                val isSelected by remember { derivedStateOf { selectedPalette == option.style } }
                 Column(
                     modifier = Modifier
                         .clip(ShapeDefaults.Medium)
@@ -314,7 +251,7 @@ fun ThemeSettings(
                 ) {
                     DynamicMaterialTheme(
                         seedColor = dominantColorState.color,
-                        useDarkTheme = when(selectedAppearance) {
+                        useDarkTheme = when (selectedAppearance) {
                             Appearance.System -> isDarkTheme
                             Appearance.Light -> false
                             Appearance.Dark -> true
@@ -334,14 +271,8 @@ fun ThemeSettings(
                         animate = true
                     ) {
                         val previewColors = if (option.style == PaletteStyle.Ren) {
-                            listOf(
-                                renPrimary,
-                                renSecondary,
-                                renTertiary,
-                                renDarkBackground,
-                                renLightBackground,
-                                Color(0xFFD9D1D1)
-                            )
+                            listOf(renPrimary, renSecondary, renTertiary,
+                                   renDarkBackground, renLightBackground, Color(0xFFD9D1D1))
                         } else {
                             listOf(
                                 MaterialTheme.colorScheme.primary,
@@ -353,25 +284,25 @@ fun ThemeSettings(
                             )
                         }
                         previewColors.fastForEach {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(24.dp)
-                                    .clip(RoundedCornerShape(2.dp))
-                                    .background(color = it)
-                            )
+                            Box(modifier = Modifier
+                                .fillMaxWidth()
+                                .height(24.dp)
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(color = it))
                         }
                     }
                 }
-
                 Spacer(modifier = Modifier.height(8.dp))
-
                 Text(
                     text = option.title,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (isSelected) {
-                        MaterialTheme.colorScheme.primary
-                    } else MaterialTheme.colorScheme.onSurface
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = if (isSelected) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -382,12 +313,8 @@ fun ThemeSettings(
             supportingText = context.resources.getString(R.string.black_theme_explain),
             icon = Icons.Rounded.Contrast,
             isChecked = amoledDarkTheme,
-            onCheckedChange = {
-                settings.updateAmoledDarkTheme(it)
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
+            onCheckedChange = { settings.updateAmoledDarkTheme(it) },
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
         )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -397,12 +324,8 @@ fun ThemeSettings(
                 supportingText = context.resources.getString(R.string.use_system_key_colors_explain),
                 icon = Icons.Rounded.AutoAwesome,
                 isChecked = useDynamicColor,
-                onCheckedChange = {
-                    settings.updateUseDynamicColor(it)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
+                onCheckedChange = { settings.updateUseDynamicColor(it) },
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
             )
         }
 
@@ -412,14 +335,99 @@ fun ThemeSettings(
             supportingText = context.resources.getString(R.string.use_album_art_color_explain),
             icon = Icons.Rounded.Album,
             isChecked = useAlbumArtColor,
-            onCheckedChange = {
-                settings.updateUseAlbumArtColor(it)
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
+            onCheckedChange = { settings.updateUseAlbumArtColor(it) },
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
         )
 
+        // Selector de tipografia de la aplicacion
+        val selectedFont by settings.selectedFontFamily.collectAsState()
+        FontFamilySelector(
+            title = context.resources.getString(R.string.typography_app_title),
+            fonts = AppFont.entries,
+            selectedFont = selectedFont,
+            onFontSelected = { settings.updateSelectedFontFamily(it) },
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+fun FontFamilySelector(
+    title: String,
+    fonts: List<AppFont>,
+    selectedFont: AppFont,
+    onFontSelected: (AppFont) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(ShapeDefaults.ExtraLarge)
+            .background(color = MaterialTheme.colorScheme.surfaceContainer)
+            .padding(vertical = 16.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(start = 20.dp)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        LazyRow {
+            item { Spacer(modifier = Modifier.width(8.dp)) }
+            items(fonts) { font ->
+                val isSelected = selectedFont == font
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .width(96.dp)
+                        .clip(ShapeDefaults.Large)
+                        .clickable { onFontSelected(font) }
+                        .padding(8.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(ShapeDefaults.Medium)
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                else MaterialTheme.colorScheme.surfaceVariant
+                            )
+                            .border(
+                                width = animateDpAsState(
+                                    targetValue = if (isSelected) 2.dp else (-1).dp,
+                                    label = "font-border"
+                                ).value,
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = ShapeDefaults.Medium
+                            )
+                            .padding(horizontal = 8.dp, vertical = 10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Ag",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontFamily = font.fontFamily
+                            ),
+                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = font.displayName,
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                        color = if (isSelected) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+            item { Spacer(modifier = Modifier.width(8.dp)) }
+        }
     }
 }
 
@@ -439,22 +447,9 @@ class PaletteOption(
 ) : SettingOption(title, onSelection)
 
 object Theme {
-    enum class Appearance {
-        System,
-        Light,
-        Dark
-    }
-
+    enum class Appearance { System, Light, Dark }
     enum class PaletteStyle {
-        Ren,
-        TonalSpot,
-        Neutral,
-        Vibrant,
-        Expressive,
-        Rainbow,
-        FruitSalad,
-        Monochrome,
-        Fidelity,
-        Content
+        Ren, TonalSpot, Neutral, Vibrant, Expressive,
+        Rainbow, FruitSalad, Monochrome, Fidelity, Content
     }
 }
